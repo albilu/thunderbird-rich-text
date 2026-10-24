@@ -2,7 +2,7 @@
 
 [![Release](https://github.com/albilu/thunderbird-rich-text/actions/workflows/release.yml/badge.svg)](https://github.com/albilu/thunderbird-rich-text/actions/workflows/release.yml)
 [![Latest release](https://img.shields.io/github/v/release/albilu/thunderbird-rich-text)](https://github.com/albilu/thunderbird-rich-text/releases/latest)
-[![Thunderbird](https://img.shields.io/badge/Thunderbird-128%2B-blue.svg)]()
+[![Thunderbird](https://img.shields.io/badge/Thunderbird-128--153.x-blue.svg)]()
 
 **A persistent rich-text formatting toolbar above the message body in
 Thunderbird's own composer — fonts, sizes, colors, highlights, lists, links,
@@ -52,7 +52,7 @@ history. No remote editor, account, or service is involved.
 <details>
 <summary><strong>Requirements</strong></summary>
 
-- **Thunderbird 128+** — verified on Thunderbird **153.4.0 ESR, Linux**;
+- **Thunderbird 128–153.x** — verified on Thunderbird **153.4.0 ESR, Linux**;
   other versions should be verified before publishing.
 - The Experiment API requires Thunderbird's **full, unrestricted access**
   permission prompt on install and upgrade.
