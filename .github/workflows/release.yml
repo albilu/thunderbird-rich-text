@@ -1,0 +1,104 @@
+name: Build and release
+
+on:
+  push:
+    branches: [master]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Check, test, and package
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      version: ${{ steps.release.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+      - name: Validate release version
+        id: release
+        shell: python
+        run: |
+          import json
+          import os
+          import re
+          from pathlib import Path
+
+          version = json.loads(Path("extension/manifest.json").read_text())["version"]
+          if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version):
+              raise SystemExit("Use a stable major.minor.patch release version.")
+          if os.environ["GITHUB_REF_TYPE"] == "tag" and os.environ["GITHUB_REF_NAME"] != f"v{version}":
+              raise SystemExit(f"Release tag must match the manifest version: v{version}")
+          if not Path(f"docs/releases/{version}.md").is_file():
+              raise SystemExit(f"Missing release notes: docs/releases/{version}.md")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"version={version}\n")
+      - name: Check sources, run tests, and build XPI
+        run: npm run build
+      - name: Verify package checksum
+        working-directory: dist
+        env:
+          RELEASE_VERSION: ${{ steps.release.outputs.version }}
+        run: sha256sum --check "thunderbird-rich-text-${RELEASE_VERSION}.xpi.sha256"
+      - name: Upload installable package
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: thunderbird-rich-text-${{ steps.release.outputs.version }}
+          path: |
+            dist/thunderbird-rich-text-${{ steps.release.outputs.version }}.xpi
+            dist/thunderbird-rich-text-${{ steps.release.outputs.version }}.xpi.sha256
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    name: Publish GitHub release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Download tested package
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: thunderbird-rich-text-${{ needs.build.outputs.version }}
+          path: dist
+      - name: Verify downloaded package
+        working-directory: dist
+        env:
+          RELEASE_VERSION: ${{ needs.build.outputs.version }}
+        run: sha256sum --check "thunderbird-rich-text-${RELEASE_VERSION}.xpi.sha256"
+      - name: Publish XPI and checksum
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          gh release create "$RELEASE_TAG" \
+            "dist/thunderbird-rich-text-${RELEASE_VERSION}.xpi" \
+            "dist/thunderbird-rich-text-${RELEASE_VERSION}.xpi.sha256" \
+            --repo "$GITHUB_REPOSITORY" \
+            --verify-tag \
+            --title "Thunderbird Rich Text ${RELEASE_VERSION}" \
+            --notes-file "docs/releases/${RELEASE_VERSION}.md" \
+            --latest

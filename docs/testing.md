@@ -8,6 +8,11 @@ HTML escaping, emoji sequences, plain-text restrictions, toolbar-origin checks,
 tab targeting, existing-window injection, numeric typography bounds, native-operation
 routing, and deterministic archive contents.
 
+GitHub Actions runs these build checks on `master`, pull requests, manual runs,
+and version tags. Tag releases additionally verify the tag/manifest match and
+published package checksum. Native Thunderbird checks remain a separate local
+release check; the hosted workflow does not run the graphical integration suite.
+
 `npm run test:thunderbird` builds and installs the actual XPI into a real Linux
 Thunderbird instance in an isolated offline profile. It requires Xvfb
 and xfwm4, and uses the built-in Marionette test protocol with Python's standard

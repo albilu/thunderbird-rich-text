@@ -1,5 +1,8 @@
 # thunderbird-rich-text
 
+[![Build and release](https://github.com/albilu/thunderbird-rich-text/actions/workflows/release.yml/badge.svg)](https://github.com/albilu/thunderbird-rich-text/actions/workflows/release.yml)
+[![Latest release](https://img.shields.io/github/v/release/albilu/thunderbird-rich-text)](https://github.com/albilu/thunderbird-rich-text/releases/latest)
+
 Thunderbird Rich text editor plugin.
 
 ## Features
@@ -68,6 +71,9 @@ requires Thunderbird's **full, unrestricted access** add-on permission. Formatti
 goes through a validated compose-script bridge.
 
 ## Build and install
+
+Installable XPI packages and checksums are available on the
+[GitHub releases page](https://github.com/albilu/thunderbird-rich-text/releases/latest).
 
 Requires **Node.js 20+** and **Python 3.9+**. There are no npm or Python packages to
 install. Run from the repository root:
@@ -181,6 +187,28 @@ by the build.
 
 See [the design notes](docs/design.md) for architecture and tradeoffs, and
 [the verification checklist](docs/testing.md) for release testing.
+
+### Automated releases
+
+The [Build and release workflow](.github/workflows/release.yml) checks sources,
+runs the automated tests, and packages the XPI on pushes to `master`, pull requests,
+and manual runs. Successful builds retain the XPI and its SHA-256 checksum as
+workflow artifacts. Native Thunderbird tests are run separately using the command
+above; they are not part of the hosted workflow.
+
+To publish a new stable version:
+
+1. Update the versions in `extension/manifest.json` and `package.json`, update the
+   package paths in this README, and add `docs/releases/<version>.md`.
+2. Run the build and native checks, commit the changes, and push `master`.
+3. After the branch workflow passes, create and push an annotated tag matching the
+   manifest version, for example `git tag -a v1.5.0 -m 'Release 1.5.0'` followed by
+   `git push origin v1.5.0`.
+
+The tag workflow rebuilds, verifies checksums, and publishes a GitHub release with
+the tested XPI, checksum, and versioned release notes. A mismatched tag is rejected.
+Publishing uses GitHub's built-in token; no repository secret is required. Releases
+are created once, and published assets are never overwritten by the workflow.
 
 ## Privacy
 
