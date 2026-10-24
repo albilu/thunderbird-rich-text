@@ -25,12 +25,39 @@ test('link markup escapes both the label and attribute', () => {
 
 test('only explicit formatting commands and supported values are accepted', () => {
   assert.deepEqual(normalizeCommand('bold', 'ignored'), { command: 'bold' });
-  for (const [value] of FONTS) assert.equal(normalizeCommand('fontName', value).value, value);
-  for (const [value] of SIZES) assert.equal(normalizeCommand('fontSize', Number(value)).value, value);
+  for (const value of FONTS) assert.equal(normalizeCommand('fontName', value).value, value);
+  for (const value of SIZES) assert.equal(normalizeCommand('fontSize', value).value, value);
   for (const [value] of BLOCKS) assert.equal(normalizeCommand('formatBlock', value).value, value);
-  for (const [name, value] of [['insertHTML', '<script>'], ['fontSize', 42], ['fontName', 'url(evil)'], ['formatBlock', 'script'], ['copy'], ['delete'], ['unknown']]) {
+  for (const [name, value] of [['insertHTML', '<script>'], ['fontSize', 201], ['fontName', 'url(evil)'], ['formatBlock', 'script'], ['copy'], ['delete'], ['unknown']]) {
     assert.throws(() => normalizeCommand(name, value));
   }
+});
+
+test('font families are not limited to a preset list and font sizes are numeric points', () => {
+  for (const font of ['Fira Code', 'Adwaita Sans', 'Noto Sans CJK JP', '源ノ角ゴシック', "Example's Sans (Book)"]) assert.equal(normalizeCommand('fontName', font).value, font);
+  for (const size of [9, '12', 10.5, 37, 200]) assert.equal(normalizeCommand('fontSize', size).value, Number(size));
+  for (const value of ['', null, true, {}, 0, -1, 201, Infinity, '12pt', '12; color:red']) assert.throws(() => normalizeCommand('fontSize', value));
+  for (const value of ['', null, 'A; color:red', '<font>', 'A\nB']) assert.throws(() => normalizeCommand('fontName', value));
+});
+
+test('line and paragraph spacing accept bounded numbers without arbitrary CSS', () => {
+  assert.deepEqual(normalizeCommand('lineSpacing', '1.5'), {command: 'lineSpacing', value: 1.5});
+  assert.equal(normalizeCommand('lineSpacing', 'normal').value, 'normal');
+  assert.deepEqual(normalizeCommand('paragraphSpacing', {before: '0', after: '12.5'}).value, {before: 0, after: 12.5});
+  assert.deepEqual(normalizeCommand('paragraphSpacing', {after: 6}).value, {after: 6});
+  for (const value of [0, 6, '', null, '1.5em', '1; display:none']) assert.throws(() => normalizeCommand('lineSpacing', value));
+  for (const value of [{}, {before: -1}, {after: 201}, {before: ''}, {after: '12pt'}, {before: true}]) assert.throws(() => normalizeCommand('paragraphSpacing', value));
+  for (const command of ['fontSize', 'lineSpacing', 'paragraphSpacing']) assert.equal(isPlainTextCommand(command), false);
+});
+
+test('paragraph spacing buttons request a relative change without overwriting mixed margins', () => {
+  for (const [command, adjust] of [['paragraphSpacingIncrease', 'increase'], ['paragraphSpacingDecrease', 'decrease']]) {
+    const normalized = normalizeCommand(command);
+    assert.deepEqual(normalized, {command: 'paragraphSpacing', value: {adjust}});
+    assert.deepEqual(normalizeCommand(normalized.command, normalized.value), normalized);
+    assert.equal(isPlainTextCommand(command), false);
+  }
+  for (const value of [{adjust: 'reset'}, {adjust: 'increase', before: 12}, {adjust: true}]) assert.throws(() => normalizeCommand('paragraphSpacing', value));
 });
 
 test('colors allow hex and background clearing, without arbitrary CSS', () => {

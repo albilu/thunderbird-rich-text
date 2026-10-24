@@ -1,8 +1,8 @@
-/* Only this trusted extension page talks to the compose and tabs APIs. */
+/* Only the trusted toolbar and its dropdown page talk to the compose and tabs APIs. */
 (() => {
   "use strict";
   const api = browser;
-  const { CHANNEL, normalizeCommand, isPlainTextCommand, normalizeToolbarSettings } = RichText;
+  const { CHANNEL, normalizeCommand, isPlainTextCommand, normalizeToolbarSettings, TYPOGRAPHY_COMMANDS } = RichText;
   const injections = new Map();
   const files = ["shared.js", "editor.js"];
 
@@ -52,12 +52,19 @@
       if (isPlainText && !isPlainTextCommand(normalized.command)) {
         throw new Error("Formatting needs an HTML message. Hold Shift while clicking Write to switch compose format.");
       }
-      request = { channel: CHANNEL, action: "command", ...normalized };
+      if (TYPOGRAPHY_COMMANDS.includes(normalized.command)) {
+        // Restore the saved native selection before handing it to the editor API.
+        const prepared = await api.tabs.sendMessage(tabId, { channel: CHANNEL, action: "prepareTypography" });
+        if (!prepared?.ok) throw new Error(prepared?.error || "The editor selection is unavailable.");
+        try { await api.composeToolbar.applyTypography(tabId, normalized.command, normalized.value); }
+        finally { await api.tabs.sendMessage(tabId, { channel: CHANNEL, action: "finishTypography" }); }
+      } else request = { channel: CHANNEL, action: "command", ...normalized };
     } else if (!["connect", "state"].includes(message.action)) {
       throw new Error("Unknown Rich Text request.");
     }
     const response = await api.tabs.sendMessage(tabId, request);
     if (!response?.ok) throw new Error(response?.error || "The message editor is not ready. Try reconnecting the toolbar.");
+    if (!isPlainText) response.state.values = { ...response.state.values, ...await api.composeToolbar.getTypography(tabId) };
     return { ...response, tabId, isPlainText };
   }
 
@@ -65,15 +72,16 @@
     if (message?.channel !== CHANNEL || sender.id !== api.runtime.id) return undefined;
     if (message.action === "editorState" && sender.tab && !sender.url?.startsWith(api.runtime.getURL(""))) {
       // Compose scripts only send transient formatting state, never preferences or commands.
-      api.tabs.get(sender.tab.id).then(tab => {
+      api.tabs.get(sender.tab.id).then(async tab => {
         if (tab.type === "messageCompose") return api.runtime.sendMessage({
-          channel: CHANNEL, action: "toolbarState", tabId: tab.id, state: message.state
+          channel: CHANNEL, action: "toolbarState", tabId: tab.id,
+          state: { ...message.state, values: { ...message.state.values, ...await api.composeToolbar.getTypography(tab.id) } }
         });
         return undefined;
       }).catch(() => { /* The window or toolbar may have just closed. */ });
       return undefined;
     }
-    if (sender.url?.split("?")[0] !== api.runtime.getURL("toolbar/toolbar.html")) return undefined;
+    if (!["toolbar/toolbar.html", "toolbar/dropdown.html"].some(path => sender.url?.split("?")[0] === api.runtime.getURL(path))) return undefined;
     const boundValue = new URL(sender.url).searchParams.get("tabId");
     const boundTab = Number(boundValue);
     if (!boundValue || !Number.isInteger(boundTab) || message.tabId !== boundTab) {

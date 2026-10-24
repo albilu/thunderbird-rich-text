@@ -3,7 +3,7 @@
   "use strict";
   if (globalThis.__richTextEditorInstalled) return;
   globalThis.__richTextEditorInstalled = true;
-  const { CHANNEL, TOGGLES, normalizeCommand, linkHtml } = RichText;
+  const { CHANNEL, TOGGLES, FONTS, normalizeCommand, linkHtml, TYPOGRAPHY_COMMANDS } = RichText;
   let savedRange = null;
   let executing = false;
   let stateTimer;
@@ -65,6 +65,7 @@
 
   function execute(command, value) {
     ({ command, value } = normalizeCommand(command, value));
+    if (TYPOGRAPHY_COMMANDS.includes(command)) throw new Error("This formatting command requires the native typography adapter.");
     const selection = restoreSelection();
     const wasCss = query("queryCommandState", "styleWithCSS", false);
     executing = true;
@@ -85,6 +86,9 @@
         } else {
           applied = document.execCommand("insertHTML", false, linkHtml(value.url, value.text));
         }
+      } else if (command === "fontName") {
+        // Quote literal family names so punctuation is not interpreted as CSS syntax.
+        applied = document.execCommand(command, false, FONTS.includes(value.toLowerCase()) ? value : JSON.stringify(value));
       } else {
         applied = document.execCommand(command, false, value ?? null);
       }
@@ -122,6 +126,17 @@
     if (message?.channel !== CHANNEL || sender.id !== browser.runtime.id) return undefined;
     try {
       if (message.action === "ping") return Promise.resolve({ ok: true });
+      if (message.action === "prepareTypography") {
+        restoreSelection();
+        executing = true;
+        return Promise.resolve({ ok: true });
+      }
+      if (message.action === "finishTypography") {
+        executing = false;
+        rememberSelection(true);
+        publishState();
+        return Promise.resolve({ ok: true });
+      }
       if (message.action === "state") return Promise.resolve({ ok: true, state: getState() });
       if (message.action === "command") return Promise.resolve({ ok: true, state: execute(message.command, message.value) });
     } catch (error) {

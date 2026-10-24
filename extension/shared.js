@@ -9,15 +9,23 @@
       hideNativeToolbar: typeof value?.hideNativeToolbar === "boolean" ? value.hideNativeToolbar : DEFAULT_TOOLBAR_SETTINGS.hideNativeToolbar
     };
   }
-  const FONTS = [
-    ["sans-serif", "Default sans serif"], ["serif", "Default serif"],
-    ["Arial", "Arial"], ["Georgia", "Georgia"], ["Times New Roman", "Times New Roman"],
-    ["Verdana", "Verdana"], ["Trebuchet MS", "Trebuchet MS"], ["Courier New", "Courier New"],
-    ["Liberation Sans", "Liberation Sans"], ["Liberation Serif", "Liberation Serif"],
-    ["DejaVu Sans", "DejaVu Sans"], ["Noto Sans", "Noto Sans"], ["monospace", "Monospace"]
-  ];
-  const SIZES = [["1", "Tiny"], ["2", "Small"], ["3", "Normal"], ["4", "Medium"],
-    ["5", "Large"], ["6", "Extra large"], ["7", "Huge"]];
+  const FONTS = ["sans-serif", "serif", "monospace", "cursive", "fantasy", "system-ui"];
+  const SIZES = [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 36, 48, 72];
+  const TYPOGRAPHY_COMMANDS = ["fontSize", "lineSpacing", "paragraphSpacing"];
+  function normalizeFontName(value) {
+    if (typeof value !== "string" || !value.trim() || value.length > 200 ||
+        /[\u0000-\u001f\u007f;,{}<>\\]/u.test(value) || /url\s*\(/i.test(value)) {
+      throw new Error("Enter a font family name, such as Noto Sans.");
+    }
+    return value.trim();
+  }
+  function normalizeNumber(value, min, max, label) {
+    if ((typeof value !== "number" && typeof value !== "string") ||
+        !/^\d+(?:\.\d+)?$/.test(String(value).trim())) throw new Error(`${label} must be a number from ${min} to ${max}.`);
+    const number = Number(value);
+    if (!Number.isFinite(number) || number < min || number > max) throw new Error(`${label} must be a number from ${min} to ${max}.`);
+    return Math.round(number * 100) / 100;
+  }
   const BLOCKS = [["p", "Paragraph"], ["h1", "Heading 1"], ["h2", "Heading 2"],
     ["h3", "Heading 3"], ["blockquote", "Quotation"], ["pre", "Preformatted"]];
   const TOGGLES = ["bold", "italic", "underline", "strikeThrough", "superscript", "subscript",
@@ -73,8 +81,21 @@
 
   function normalizeCommand(command, value) {
     if (SIMPLE.has(command)) return { command };
-    if (command === "fontName" && FONTS.some(([font]) => value === font)) return { command, value };
-    if (command === "fontSize" && SIZES.some(([size]) => String(value) === size)) return { command, value: String(value) };
+    if (["paragraphSpacingIncrease", "paragraphSpacingDecrease"].includes(command)) {
+      return { command: "paragraphSpacing", value: { adjust: command === "paragraphSpacingIncrease" ? "increase" : "decrease" } };
+    }
+    if (command === "fontName") return { command, value: normalizeFontName(value) };
+    if (command === "fontSize") return { command, value: normalizeNumber(value, 1, 200, "Font size (pt)") };
+    if (command === "lineSpacing") return { command, value: value === "normal" ? value : normalizeNumber(value, 0.5, 5, "Line spacing") };
+    if (command === "paragraphSpacing" && value && typeof value === "object") {
+      if (Object.hasOwn(value, "adjust")) {
+        if (Object.keys(value).length !== 1 || !["increase", "decrease"].includes(value.adjust)) throw new Error("Choose increase or decrease paragraph spacing.");
+        return { command, value: { adjust: value.adjust } };
+      }
+      const spacing = {};
+      for (const key of ["before", "after"]) if (value[key] !== undefined) spacing[key] = normalizeNumber(value[key], 0, 200, "Paragraph spacing (pt)");
+      if (Object.keys(spacing).length) return { command, value: spacing };
+    }
     if (command === "formatBlock" && BLOCKS.some(([block]) => value === block)) return { command, value };
     if (["foreColor", "hiliteColor"].includes(command)) {
       return { command, value: normalizeColor(value, command !== "foreColor") };
@@ -106,5 +127,5 @@
 
   globalThis.RichText = Object.freeze({ CHANNEL, FONTS, SIZES, BLOCKS, TOGGLES, COLORS, HIGHLIGHTS,
     EMOJI, normalizeColor, normalizeUrl, normalizeCommand, escapeHtml, linkHtml, isPlainTextCommand,
-    DEFAULT_TOOLBAR_SETTINGS, normalizeToolbarSettings });
+    DEFAULT_TOOLBAR_SETTINGS, normalizeToolbarSettings, TYPOGRAPHY_COMMANDS, normalizeFontName });
 })();

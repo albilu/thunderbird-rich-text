@@ -4,6 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Rich Text toolbar</title>
+  <link rel="stylesheet" href="../theme.css">
+  <script src="../theme.js" defer></script>
   <link rel="stylesheet" href="toolbar.css">
   <script src="../shared.js" defer></script>
   <script src="toolbar.js" defer></script>
@@ -12,9 +14,10 @@
   <div id="strip" role="toolbar" aria-label="Rich Text formatting">
     <span class="brand"><img src="../icons/rich-text.svg" width="22" height="22" alt="">Rich Text</span>
     <div class="group typography" role="group" aria-label="Typography">
-      <select id="block" data-command="formatBlock" aria-label="Paragraph style" title="Paragraph style" disabled><option value="">Style</option></select>
-      <select id="font" data-command="fontName" aria-label="Font family" title="Font family" disabled><option value="">Font</option></select>
-      <select id="size" data-command="fontSize" aria-label="Font size" title="Font size" disabled><option value="">Size</option></select>
+      <button id="style-toggle" class="selector" data-menu="style" aria-label="Paragraph style" aria-haspopup="dialog" aria-expanded="false" title="Paragraph style" disabled><span id="block">Style</span><span class="chevron" data-icon="chevron"></span></button>
+      <button id="font-toggle" class="selector" data-menu="font" aria-label="Font family" aria-haspopup="dialog" aria-expanded="false" title="Search or choose a font family" disabled><span id="font">Font family</span><span class="chevron" data-icon="chevron"></span></button>
+      <label class="size-control"><input id="size" type="number" list="font-sizes" data-command="fontSize" min="1" max="200" step="any" aria-label="Font size in points" title="Font size in points (1–200)" placeholder="Size" disabled><span>pt</span></label>
+      <datalist id="font-sizes"></datalist>
     </div>
     <div class="group" role="group" aria-label="Text styles">
       <button data-command="bold" class="bold" aria-label="Bold" title="Bold" aria-pressed="false" disabled>B</button>
@@ -27,14 +30,19 @@
       <button data-command="subscript" aria-label="Subscript" title="Subscript" aria-pressed="false" disabled>x<sub>2</sub></button>
     </div>
     <div class="group" role="group" aria-label="Text colors">
-      <button id="text-color" class="color-tool" data-tray="color" data-color="foreColor" aria-label="Text color" title="Text color" aria-controls="color-tray" aria-expanded="false" disabled>A<span class="color-line" id="text-color-line"></span></button>
-      <button id="highlight" class="color-tool" data-tray="color" data-color="hiliteColor" aria-label="Highlight and text background" title="Highlight and text background" aria-controls="color-tray" aria-expanded="false" disabled><span data-icon="marker"></span><span class="color-line" id="highlight-line"></span></button>
+      <button id="text-color" class="color-tool" data-menu="text-color" aria-label="Text color" title="Text color" aria-haspopup="dialog" aria-expanded="false" disabled>A<span class="color-line" id="text-color-line"></span></button>
+      <button id="highlight" class="color-tool" data-menu="background-color" aria-label="Highlight and text background" title="Highlight and text background" aria-haspopup="dialog" aria-expanded="false" disabled><span data-icon="marker"></span><span class="color-line" id="highlight-line"></span></button>
     </div>
     <div class="group" role="group" aria-label="Alignment">
       <button data-command="justifyLeft" data-icon="left" aria-label="Align left" title="Align left" aria-pressed="false" disabled></button>
       <button data-command="justifyCenter" data-icon="center" aria-label="Align center" title="Align center" aria-pressed="false" disabled></button>
       <button data-command="justifyRight" data-icon="right" aria-label="Align right" title="Align right" aria-pressed="false" disabled></button>
       <button data-command="justifyFull" data-icon="justify" aria-label="Justify" title="Justify" aria-pressed="false" disabled></button>
+    </div>
+    <div class="group" role="group" aria-label="Spacing">
+      <button id="line-spacing-toggle" data-menu="line-spacing" aria-label="Set line spacing" title="Set line spacing" aria-haspopup="dialog" aria-expanded="false" disabled><span data-icon="spacing"></span><span class="chevron" data-icon="chevron"></span></button>
+      <button data-command="paragraphSpacingIncrease" data-icon="space-increase" aria-label="Increase paragraph spacing" title="Increase paragraph spacing" disabled></button>
+      <button data-command="paragraphSpacingDecrease" data-icon="space-decrease" aria-label="Decrease paragraph spacing" title="Decrease paragraph spacing" disabled></button>
     </div>
     <div class="group" role="group" aria-label="Lists and indentation">
       <button data-command="insertUnorderedList" data-icon="bullets" aria-label="Bulleted list" title="Bulleted list" aria-pressed="false" disabled></button>
@@ -43,8 +51,8 @@
       <button data-command="indent" data-icon="indent" aria-label="Increase indent" title="Increase indent" disabled></button>
     </div>
     <div class="group" role="group" aria-label="Insert">
-      <button data-tray="link" data-icon="link" aria-label="Insert or edit a link" title="Insert or edit a link" aria-controls="link-tray" aria-expanded="false" disabled></button>
-      <button data-tray="emoji" data-icon="smile" aria-label="Insert emoji" title="Insert emoji" aria-controls="emoji-tray" aria-expanded="false" disabled></button>
+      <button data-menu="link" data-icon="link" aria-label="Insert or edit a link" title="Insert or edit a link" aria-haspopup="dialog" aria-expanded="false" disabled></button>
+      <button data-menu="emoji" data-icon="smile" aria-label="Insert emoji" title="Insert emoji" aria-haspopup="dialog" aria-expanded="false" disabled></button>
       <button data-command="insertHorizontalRule" data-icon="rule" aria-label="Insert a divider" title="Insert a divider" disabled></button>
     </div>
     <div class="group" role="group" aria-label="History and clear formatting">
@@ -55,31 +63,6 @@
     <span id="mode" hidden>Plain text</span>
   </div>
 
-  <div id="trays" hidden>
-    <div class="tray-heading"><h2 id="tray-title"></h2><button id="close-tray" aria-label="Close tools" title="Close tools (Escape)" data-icon="close"></button></div>
-    <section id="color-tray" aria-label="Color tools" hidden>
-      <div id="palette" role="group" aria-label="Preset colors"></div>
-      <form id="color-form" class="color-form">
-        <label class="sr-only" for="color-picker">Custom color picker</label><input id="color-picker" type="color" value="#fef08a">
-        <label class="sr-only" for="color-hex">Hex color</label><input id="color-hex" type="text" value="#fef08a" pattern="#[a-fA-F0-9]{6}" maxlength="7" required spellcheck="false">
-        <button type="submit" class="label-button primary">Apply color</button>
-        <button type="button" id="clear-highlight" class="label-button">Clear highlight</button>
-      </form>
-    </section>
-    <section id="link-tray" aria-label="Link tools" hidden>
-      <form id="link-form">
-        <label>Address<input id="link-url" type="text" inputmode="url" placeholder="https://example.com" spellcheck="false" autocomplete="off" maxlength="2048" required></label>
-        <label>Display text (optional)<input id="link-text" type="text" placeholder="Use selected text or the address" maxlength="2000"></label>
-        <button type="submit" class="label-button primary">Apply link</button>
-        <button type="button" class="label-button" data-command="unlink">Remove link</button>
-      </form>
-    </section>
-    <section id="emoji-tray" aria-label="Emoji tools" hidden>
-      <label class="sr-only" for="emoji-search">Search emoji</label><input id="emoji-search" type="search" placeholder="Search emoji…" autocomplete="off">
-      <div id="emoji-grid" role="group" aria-label="Emoji"></div>
-      <p id="no-emoji" hidden>No matching emoji. Try “happy”, “thanks”, or “work”.</p>
-    </section>
-  </div>
   <div id="error" role="alert" hidden></div>
   <button id="retry" class="label-button" hidden>Reconnect to the message</button>
   <span id="status" class="sr-only" role="status">Connecting to the message…</span>

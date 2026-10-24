@@ -1,8 +1,59 @@
 [
   {
     "namespace": "composeToolbar",
-    "description": "Mount the packaged Rich Text toolbar outside the message body and control its visibility.",
+    "description": "Host the toolbar, list installed fonts, and apply bounded native typography transactions.",
     "functions": [
+      {
+        "name": "getTheme", "type": "function", "async": true,
+        "description": "Return resolved Thunderbird UI colors with system-color fallbacks.",
+        "parameters": [{ "name": "tabId", "type": "integer", "optional": true }]
+      },
+      {
+        "name": "openDropdown", "type": "function", "async": true,
+        "description": "Open a packaged formatting dropdown above the compose body without resizing its toolbar.",
+        "parameters": [
+          { "name": "tabId", "type": "integer" },
+          { "name": "kind", "type": "string", "enum": ["font", "style", "line-spacing", "text-color", "background-color", "link", "emoji"] },
+          { "name": "anchor", "type": "object", "properties": {
+            "x": { "type": "number", "minimum": 0, "maximum": 20000 },
+            "y": { "type": "number", "minimum": 0, "maximum": 20000 },
+            "width": { "type": "number", "minimum": 0, "maximum": 1000 },
+            "height": { "type": "number", "minimum": 0, "maximum": 1000 }
+          } }
+        ]
+      },
+      {
+        "name": "closeDropdown", "type": "function", "async": true,
+        "parameters": [
+          { "name": "tabId", "type": "integer" },
+          { "name": "focusEditor", "type": "boolean", "optional": true, "default": false }
+        ]
+      },
+      {
+        "name": "getFonts", "type": "function", "async": true,
+        "description": "Return the font families installed on this computer.",
+        "parameters": []
+      },
+      {
+        "name": "getTypography", "type": "function", "async": true,
+        "parameters": [{ "name": "tabId", "type": "integer" }]
+      },
+      {
+        "name": "applyTypography", "type": "function", "async": true,
+        "parameters": [
+          { "name": "tabId", "type": "integer" },
+          { "name": "command", "type": "string", "enum": ["fontSize", "lineSpacing", "paragraphSpacing"] },
+          { "name": "value", "choices": [
+            { "type": "number", "minimum": 0.5, "maximum": 200 },
+            { "type": "string", "enum": ["normal"] },
+            { "type": "object", "properties": {
+              "before": { "type": "number", "minimum": 0, "maximum": 200, "optional": true },
+              "after": { "type": "number", "minimum": 0, "maximum": 200, "optional": true },
+              "adjust": { "type": "string", "enum": ["increase", "decrease"], "optional": true }
+            } }
+          ] }
+        ]
+      },
       {
         "name": "configure",
         "type": "function",
@@ -28,6 +79,19 @@
         "async": true,
         "parameters": [{ "name": "tabId", "type": "integer" }]
       }
-    ]
+    ],
+    "events": [{
+      "name": "onThemeChanged", "type": "function",
+      "parameters": [
+        { "name": "tabId", "type": "integer" },
+        { "name": "theme", "type": "object", "additionalProperties": { "type": "string" } }
+      ]
+    }, {
+      "name": "onDropdownClosed", "type": "function",
+      "parameters": [
+        { "name": "tabId", "type": "integer" },
+        { "name": "kind", "type": "string" }
+      ]
+    }]
   }
 ]

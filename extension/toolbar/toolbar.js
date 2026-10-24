@@ -1,14 +1,13 @@
 (() => {
   "use strict";
-  const { CHANNEL, FONTS, SIZES, BLOCKS, COLORS, HIGHLIGHTS, EMOJI, normalizeCommand,
+  const { CHANNEL, SIZES, BLOCKS, normalizeCommand,
     normalizeColor, isPlainTextCommand } = RichText;
   const $ = selector => document.querySelector(selector);
   const $$ = selector => [...document.querySelectorAll(selector)];
   const tabId = Number(new URL(location.href).searchParams.get("tabId"));
   let context;
   let busy = false;
-  let tray = null;
-  let colorTarget = "hiliteColor";
+  let dropdown = null;
   let lastHeight = 0;
   let resizePending = false;
   const customColors = { foreColor: "#1f2937", hiliteColor: "#fef08a" };
@@ -16,6 +15,10 @@
     undo: "M9 5 4 10l5 5M4 10h9a6 6 0 0 1 0 12", redo: "m15 5 5 5-5 5m5-5h-9a6 6 0 0 0 0 12",
     left: "M4 5h16M4 10h10M4 15h16M4 20h10", center: "M4 5h16M7 10h10M4 15h16M7 20h10",
     right: "M4 5h16M10 10h10M4 15h16M10 20h10", justify: "M4 5h16M4 10h16M4 15h16M4 20h16",
+    spacing: "M11 5h10M11 12h10M11 19h10M5 3v18m-3-3 3 3 3-3M2 6l3-3 3 3",
+    "space-increase": "M4 3h16M4 7h16M4 17h16M4 21h16m-5-11 3-3 3 3m-3-3v10m-3-3 3 3 3-3",
+    "space-decrease": "M4 3h16M4 7h16M4 17h16M4 21h16m-5-13 3 3 3-3m-3-4v7m-3 4 3-3 3 3m-3 4v-7",
+    chevron: "m6 9 6 6 6-6",
     bullets: "M9 6h12M9 12h12M9 18h12M3 6h.1M3 12h.1M3 18h.1",
     numbers: "M10 6h11M10 12h11M10 18h11M3 3h1v5M2 8h4M2 13c0-3 4-3 4 0 0 2-4 3-4 6h4",
     indent: "M3 4h18M3 20h18M12 9h9M12 15h9m-18-6 4 3-4 3", outdent: "M3 4h18M3 20h18M12 9h9M12 15h9m-5-6-4 3 4 3",
@@ -34,9 +37,29 @@
     svg.append(path);
     element.append(svg);
   }
-  for (const [id, options] of [["#font", FONTS], ["#size", SIZES], ["#block", BLOCKS]]) {
-    for (const [value, label] of options) $(id).add(new Option(label, value));
+  for (const size of SIZES) $("#font-sizes").append(new Option(`${size} pt`, String(size)));
+  function closeDropdown() {
+    if (dropdown) browser.composeToolbar.closeDropdown(tabId).catch(() => {});
+    dropdown = null;
+    for (const button of $$("[data-menu]")) button.setAttribute("aria-expanded", "false");
   }
+  for (const button of $$("[data-menu]")) button.addEventListener("click", async () => {
+    const kind = button.dataset.menu;
+    if (dropdown === kind) { closeDropdown(); return; }
+    closeDropdown();
+    dropdown = kind;
+    button.setAttribute("aria-expanded", "true");
+    const rect = button.getBoundingClientRect();
+    try {
+      await browser.composeToolbar.openDropdown(tabId, kind, { x: Math.max(0, rect.x), y: Math.max(0, rect.y), width: rect.width, height: rect.height });
+    } catch (error) { closeDropdown(); setError(error.message); }
+  });
+  browser.composeToolbar.onDropdownClosed.addListener((closedTab, kind) => {
+    if (closedTab !== tabId || dropdown !== kind) return;
+    dropdown = null;
+    for (const button of $$("[data-menu]")) button.setAttribute("aria-expanded", "false");
+    request("state").then(render).catch(() => {});
+  });
 
   function resize() {
     if (!context || resizePending) return;
@@ -63,11 +86,10 @@
       if (command === "redo") item.disabled ||= !context?.state.canRedo;
       if (command === "removeFormat") item.disabled ||= context?.state.collapsed;
       if (command === "unlink") item.disabled ||= !context?.state.link && context?.state.collapsed;
+      if (command === "paragraphSpacingDecrease") item.disabled ||= context?.state.values.canDecreaseParagraphSpacing === false;
+      if (command === "paragraphSpacingIncrease") item.disabled ||= context?.state.values.canIncreaseParagraphSpacing === false;
     }
-    for (const item of $$("[data-tray]")) {
-      item.disabled = busy || !context || (context.isPlainText && item.dataset.tray !== "emoji");
-    }
-    for (const item of $$(".swatch, .emoji, #color-form button, #link-form button[type='submit']")) item.disabled = busy || !context;
+    for (const item of $$("[data-menu]")) item.disabled = busy || !context || (context.isPlainText && item.dataset.menu !== "emoji");
   }
   function render(response, force = false) {
     context = response;
@@ -75,11 +97,18 @@
     for (const button of $$("[data-command][aria-pressed]")) {
       button.setAttribute("aria-pressed", String(Boolean(context.state.states[button.dataset.command])));
     }
-    for (const select of $$("select[data-command]")) {
-      if (!force && document.activeElement === select) continue;
-      const value = String(context.state.values[select.dataset.command] || "").replace(/[<>"']/g, "").toLowerCase();
-      select.value = [...select.options].find(option => option.value.toLowerCase() === value)?.value || "";
+    for (const input of $$("input[data-command]")) {
+      if (!force && document.activeElement === input) continue;
+      const value = context.state.values[input.dataset.command] ?? "";
+      input.value = value;
     }
+    const font = String(context.state.values.fontName || "").replace(/^["']|["']$/g, "");
+    $("#font").textContent = font || "Font family";
+    $("#font-toggle").setAttribute("aria-label", font ? `Font family: ${font}` : "Font family");
+    const block = String(context.state.values.formatBlock || "").replace(/[<>]/g, "").toLowerCase();
+    const style = BLOCKS.find(([value]) => value === block)?.[1] || "Style";
+    $("#block").textContent = style;
+    $("#style-toggle").setAttribute("aria-label", `Paragraph style: ${style}`);
     enableControls();
     resize();
   }
@@ -91,13 +120,6 @@
   async function focusEditor() {
     try { await browser.composeToolbar.focusEditor(tabId); } catch { /* Compose window closed. */ }
   }
-  function closeTray(focus = true) {
-    tray = null;
-    $("#trays").hidden = true;
-    for (const button of $$("[data-tray]")) button.setAttribute("aria-expanded", "false");
-    if (focus) focusEditor();
-    resize();
-  }
   async function command(name, value) {
     if (busy || !context) return false;
     try {
@@ -107,7 +129,7 @@
       setError();
       render(await request("command", normalized), true);
       $("#status").textContent = "Applied to your message.";
-      closeTray(false);
+      closeDropdown();
       await focusEditor();
       return true;
     } catch (error) {
@@ -119,95 +141,23 @@
     }
   }
   for (const button of $$("button[data-command]")) button.addEventListener("click", () => command(button.dataset.command));
-  for (const select of $$("select[data-command]")) select.addEventListener("change", () => {
-    if (select.value) command(select.dataset.command, select.value);
-  });
+  for (const input of $$("input[data-command]")) {
+    const apply = () => { if (input.value && input.reportValidity()) command(input.dataset.command, input.value); };
+    input.addEventListener("change", apply);
+    input.addEventListener("keydown", event => { if (event.key === "Enter") { event.preventDefault(); apply(); } });
+  }
 
   function colorInputs() {
-    $("#color-picker").value = $("#color-hex").value = customColors[colorTarget];
     $("#text-color-line").style.backgroundColor = customColors.foreColor;
     $("#highlight-line").style.backgroundColor = customColors.hiliteColor;
   }
-  async function applyColor(value) {
-    const target = colorTarget;
-    if (await command(target, value) && value !== "transparent") {
-      customColors[target] = value;
-      colorInputs();
-      try { await browser.storage.local.set({ customColors }); } catch { setError("Color applied, but the color preference could not be saved."); }
-    }
-  }
-  function palette() {
-    $("#palette").replaceChildren();
-    for (const [color, name] of colorTarget === "foreColor" ? COLORS : HIGHLIGHTS) {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "swatch";
-      button.style.setProperty("--swatch", color);
-      button.title = `${name} (${color})`;
-      button.setAttribute("aria-label", button.title);
-      button.addEventListener("click", () => applyColor(color));
-      $("#palette").append(button);
-    }
-    $("#clear-highlight").hidden = colorTarget === "foreColor";
-    colorInputs();
-  }
-  async function showTray(name, button) {
-    if (tray === name && (name !== "color" || colorTarget === button.dataset.color)) { closeTray(); return; }
-    tray = name;
-    if (name === "color") colorTarget = button.dataset.color;
-    for (const section of $$("#trays > section")) section.hidden = section.id !== `${name}-tray`;
-    for (const toggle of $$("[data-tray]")) toggle.setAttribute("aria-expanded", String(toggle === button));
-    $("#trays").hidden = false;
-    $("#tray-title").textContent = { color: colorTarget === "foreColor" ? "Text color" : "Highlight / text background",
-      link: "Insert or edit a link", emoji: "A little personality" }[name];
-    if (name === "color") palette();
-    if (name === "link") {
-      try { render(await request("state")); } catch (error) { setError(error.message); return; }
-      if (tray !== "link") return;
-      $("#link-url").value = context.state.link?.url || "";
-      $("#link-text").value = context.state.link?.text || context.state.selectedText;
-      $("#link-url").focus();
-    }
-    if (name === "emoji") $("#emoji-search").focus();
-    resize();
-  }
-  for (const button of $$("[data-tray]")) button.addEventListener("click", () => showTray(button.dataset.tray, button));
-  $("#close-tray").addEventListener("click", () => closeTray());
-  $("#color-picker").addEventListener("input", event => { $("#color-hex").value = event.target.value; });
-  $("#color-hex").addEventListener("input", event => {
-    if (/^#[\da-f]{6}$/i.test(event.target.value)) $("#color-picker").value = event.target.value;
-  });
-  $("#color-form").addEventListener("submit", event => { event.preventDefault(); applyColor($("#color-hex").value); });
-  $("#clear-highlight").addEventListener("click", () => applyColor("transparent"));
-  $("#link-form").addEventListener("submit", event => {
-    event.preventDefault(); command("link", { url: $("#link-url").value, text: $("#link-text").value });
-  });
-  function emoji() {
-    const search = $("#emoji-search").value.trim().toLowerCase();
-    const matches = EMOJI.filter(([value, label]) => `${value} ${label}`.includes(search));
-    $("#emoji-grid").replaceChildren(...matches.map(([value, label]) => {
-      const button = document.createElement("button");
-      button.className = "emoji";
-      button.textContent = value;
-      button.title = label;
-      button.setAttribute("aria-label", `Insert ${label}`);
-      button.addEventListener("click", async () => {
-        if (await command("insertText", value)) {
-          try {
-            const { recentEmoji = [] } = await browser.storage.local.get("recentEmoji");
-            await browser.storage.local.set({ recentEmoji: [value, ...(Array.isArray(recentEmoji) ? recentEmoji : []).filter(item => item !== value)].slice(0, 12) });
-          } catch { setError("Emoji inserted, but recent emoji could not be saved."); }
-        }
-      });
-      return button;
-    }));
-    $("#no-emoji").hidden = matches.length > 0;
-    resize();
-  }
-  $("#emoji-search").addEventListener("input", emoji);
-  emoji();
   document.addEventListener("keydown", event => {
-    if (event.key === "Escape") { event.preventDefault(); closeTray(); }
+    if (event.defaultPrevented) return;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      if (dropdown) { const anchor = $$("[data-menu]").find(button => button.dataset.menu === dropdown); closeDropdown(); anchor?.focus(); }
+      else focusEditor();
+    }
     if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key) || !event.target.matches("#strip button")) return;
     const buttons = $$("#strip button:not(:disabled)");
     const index = buttons.indexOf(event.target);

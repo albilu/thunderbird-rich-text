@@ -43,8 +43,12 @@ removes the former popup and its launcher buttons.
 
 Implemented tools:
 
-- Font family and seven relative font sizes, including Linux font choices.
-- Paragraphs, three heading levels, quotations, and preformatted text.
+- Searchable font family dropdown listing all installed fonts, plus generic families;
+  custom family names are also accepted.
+- Numeric font sizes in points (1–200 pt, including decimals such as 10.5 pt).
+- LibreOffice-style line spacing presets and direct paragraph spacing increase/decrease buttons.
+- Paragraph-style popup with previews for paragraphs, three heading levels,
+  quotations, and preformatted text.
 - Bold, italic, underline, strikethrough, superscript, and subscript.
 - Left, center, right, and justified alignment; numbered and bulleted lists;
   indentation and horizontal dividers.
@@ -52,7 +56,8 @@ Implemented tools:
   and custom hex colors.
 - Add, edit, and remove links; searchable emoji with locally stored recents.
 - Clear inline formatting; native undo and redo.
-- Light/dark appearance, labeled controls, and keyboard navigation.
+- Thunderbird/system colors with live light/dark theme updates, labeled controls,
+  and keyboard navigation. The Rich Text logo keeps its original color.
 - Live formatting state in the persistent toolbar and settings to show it or
   replace Thunderbird's formatting toolbar.
 
@@ -74,8 +79,8 @@ npm run build
 This checks the source, runs the automated tests, and produces:
 
 ```text
-dist/thunderbird-rich-text-1.2.0.xpi
-dist/thunderbird-rich-text-1.2.0.xpi.sha256
+dist/thunderbird-rich-text-1.5.0.xpi
+dist/thunderbird-rich-text-1.5.0.xpi.sha256
 ```
 
 In Thunderbird, open **Add-ons and Themes**, choose the gear menu, then
@@ -86,11 +91,39 @@ Open a Write, Reply, or Forward window to use the toolbar above the message body
 Select text in the message before using the toolbar. Inline tools apply to that
 selection; at a collapsed cursor, styles apply to subsequent typing. Paragraph
 tools affect the current paragraph or selected paragraphs. Emoji and links insert
-at the cursor or replace the selection. Color, link, and emoji buttons expand their tools above
-the message; Escape closes them and returns focus to the editor.
+at the cursor or replace the selection. Color, link, and emoji buttons open floating
+panels over the message. Applying a choice returns focus to the editor.
 
 Superscript and subscript form a separate group between strikethrough and text
 color. Clear formatting is grouped with undo and redo.
+
+Click the font family selector to open its popup, then type in the search field to filter the list.
+Click a family or use the arrow keys and Enter to choose it. Escape cancels the
+search without changing your message. The list comes from fonts installed on
+your computer, rather than a fixed subset. If a typed family has no matches,
+Enter still lets you apply that family name.
+Enter a numeric size such as **9**, **12**, or **10.5** in the **pt** field. At an
+empty cursor, the chosen size applies to subsequent typing; a selection keeps its
+other character styles and links.
+
+Font, paragraph style, line spacing, emoji, link, and both color selectors use
+consistent floating panels without changing the toolbar's height or moving the
+editor. Click outside a popup or press Escape to close it. Paragraph styles include
+previews and mark the current style; use the arrow keys and Enter to select one.
+
+The toolbar, popups, and settings use Thunderbird's active UI colors and system
+fallbacks. Theme changes update open toolbars automatically. Formatting palettes
+still contain explicit message colors, independent of the UI theme.
+
+The **Set line spacing** dropdown beside alignment offers visual presets for
+**1**, **1.15**, **1.5**, and **2** lines, following LibreOffice's quick-control
+layout. Choose **Proportional** under **Custom value** for a percentage such as
+**125%**, then Apply. Custom values run from 50% to 500%.
+
+The adjacent **Increase paragraph spacing** and **Decrease paragraph spacing**
+buttons adjust the space above and below each selected paragraph in 2.85 pt
+steps. Each paragraph keeps its existing spacing differences; decreasing stops
+at zero. These operations use native undo/redo and remain disabled in plain text.
 
 ### Toolbar settings
 
@@ -116,8 +149,9 @@ the opposite of the account's default compose format.
 The manifest targets **Thunderbird 128+**, including Linux builds. The native suite
 has been verified on **Thunderbird 153.4.0 ESR on Linux**; compatibility with other
 versions should be verified before publishing. Font availability and the recipient's mail
-client determine the final rendering. Font sizes are relative HTML sizes, not
-fixed point sizes.
+client determine the final rendering. Font sizes and paragraph spacing are stored
+as inline point values; line height uses a unitless multiplier. Fonts are not embedded
+in the message, so recipients need the chosen font or their mail client will use a fallback.
 
 ## Development and verification
 
@@ -155,7 +189,9 @@ and recent emoji. Message text, links, and recipients are never stored by this
 add-on or transmitted to a service. There is no telemetry or remote code.
 
 The Experiment API technically has full Thunderbird and computer access. Its
-implementation only mounts/removes the packaged toolbar page in compose windows,
-sizes it, restores editor focus, and temporarily hides the native formatting bar.
-It does not read received mail, enumerate accounts, send mail, or access arbitrary
+implementation mounts/removes the packaged toolbar page in compose windows,
+sizes it, restores editor focus, temporarily hides the native formatting bar,
+lists installed font families, and applies validated point sizes and paragraph
+spacing through native editor transactions. It does not read received mail,
+enumerate accounts, send mail, or access arbitrary
 files. See [the privacy statement](docs/privacy.md) and [the adapter source](extension/experiments/compose-toolbar/api.js).

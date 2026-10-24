@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Thunderbird Rich Text",
-  "version": "1.2.0",
+  "version": "1.5.0",
   "description": "Thoughtful formatting for your emails: fonts, colors, highlights, lists, links, and emoji in Thunderbird's own editor.",
   "browser_specific_settings": {
     "gecko": {

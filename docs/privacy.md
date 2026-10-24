@@ -16,8 +16,12 @@ Versions 1.1+ include a Thunderbird Experiment API to place the persistent toolb
 in the compose window and optionally hide the default formatting toolbar.
 Thunderbird grants Experiment APIs **full, unrestricted access to Thunderbird and
 your computer**, rather than enforcing individual WebExtension permissions.
-The adapter's implementation only manages the toolbar host, its height, editor
-focus, and a temporary native-toolbar visibility override. The extension does not
+The adapter manages the toolbar host, floating formatting popups, editor focus, and a temporary
+native-toolbar visibility override. It also reads installed font family names to
+populate the font field, and reads/applies numeric typography using native editor
+transactions. It reads the active UI colors to match Thunderbird's theme; these
+colors are not stored or transmitted. The font list is kept in memory, not stored or transmitted. Font
+files are not embedded in messages. The extension does not
 read received mail, enumerate accounts, send messages, or access arbitrary files.
 
 Thunderbird continues to store drafts and send messages according to your own

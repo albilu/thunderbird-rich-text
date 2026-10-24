@@ -11,6 +11,7 @@ async function setup({ plain = false, installed = true, active = 7 } = {}) {
   const sent = [];
   const configured = [];
   const broadcast = [];
+  const typography = [];
   let settings;
   let storageListener;
   const liveTabs = new Map([[7, { id: 7, type: 'messageCompose' }], [9, { id: 9, type: 'messageCompose' }], [1, { id: 1, type: 'mail' }]]);
@@ -18,7 +19,11 @@ async function setup({ plain = false, installed = true, active = 7 } = {}) {
   const browser = {
     runtime: { id: 'test-addon', getURL: path => `moz-extension://test/${path}`, onMessage: { addListener(fn) { listener = fn; } }, async sendMessage(message) { broadcast.push(message); } },
     storage: { local: { async get() { return { toolbarSettings: settings }; } }, onChanged: { addListener(fn) { storageListener = fn; } } },
-    composeToolbar: { async configure(value) { configured.push(JSON.parse(JSON.stringify(value))); } },
+    composeToolbar: {
+      async configure(value) { configured.push(JSON.parse(JSON.stringify(value))); },
+      async getTypography() { return {fontSize: 12}; },
+      async applyTypography(tabId, command, value) { typography.push([tabId, command, value]); }
+    },
     composeScripts: { async register(options) { assert.equal(options.js.length, 2); } },
     compose: { async getComposeDetails() { return { isPlainText: plain }; } },
     tabs: {
@@ -43,7 +48,7 @@ async function setup({ plain = false, installed = true, active = 7 } = {}) {
     storageListener({ toolbarSettings: { newValue: value } }, 'local');
     await new Promise(resolve => setImmediate(resolve));
   };
-  return { send, injected, sent, liveTabs, sender, configured, broadcast, changeSettings };
+  return { send, injected, sent, liveTabs, sender, configured, broadcast, changeSettings, typography };
 }
 
 test('connect and commands stay pinned to the toolbar host rather than the active window', async () => {
@@ -53,6 +58,15 @@ test('connect and commands stay pinned to the toolbar host rather than the activ
   const result = await app.send({ action: 'command', tabId: 7, command: 'bold' });
   assert.equal(result.ok, true);
   assert.equal(app.sent.at(-1)[0], 7);
+});
+
+test('floating dropdown commands remain bound to their compose window', async () => {
+  const app = await setup({ active: 9 });
+  const sender = { ...app.sender, url: 'moz-extension://test/toolbar/dropdown.html?tabId=7&kind=line-spacing' };
+  assert.equal((await app.send({ action: 'command', tabId: 7, command: 'lineSpacing', value: 1.5 }, sender)).ok, true);
+  assert.deepEqual(app.typography, [[7, 'lineSpacing', 1.5]]);
+  assert.equal((await app.send({ action: 'command', tabId: 9, command: 'lineSpacing', value: 2 }, sender)).ok, false);
+  assert.equal(app.typography.length, 1);
 });
 
 test('closed and non-compose tabs fail without falling back to another draft', async () => {
@@ -140,4 +154,18 @@ test('live editor state is forwarded only from compose tabs and cannot invoke co
   assert.equal(app.broadcast.length, 1);
   assert.equal(app.broadcast[0].tabId, 9);
   assert.equal(app.sent.length, 0);
+});
+
+test('numeric typography restores selection and finalizes native edits in the bound draft', async () => {
+  const app = await setup();
+  const result = await app.send({action: 'command', tabId: 7, command: 'fontSize', value: '9'});
+  assert.equal(result.ok, true);
+  assert.equal(result.state.values.fontSize, 12);
+  assert.deepEqual(app.typography, [[7, 'fontSize', 9]]);
+  assert.deepEqual(app.sent.map(([, message]) => message.action), ['prepareTypography', 'finishTypography', 'state']);
+  assert.equal((await app.send({action: 'command', tabId: 7, command: 'fontSize', value: '999'})).ok, false);
+  assert.equal(app.typography.length, 1);
+  const plain = await setup({plain: true});
+  assert.equal((await plain.send({action: 'command', tabId: 7, command: 'lineSpacing', value: 2})).ok, false);
+  assert.equal(plain.typography.length, 0);
 });

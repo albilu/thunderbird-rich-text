@@ -1,0 +1,52 @@
+:root { background: var(--surface); color: var(--surface-text); }
+body { width: 280px; max-height: 420px; padding: 10px; border: 0; }
+body[data-kind="font"] { width: 300px; }
+body[data-kind="style"] { width: 240px; }
+body[data-kind="link"] { width: 340px; }
+body[data-kind="emoji"] { width: 320px; }
+.dropdown-caption { display: flex; justify-content: space-between; gap: 12px; padding: 2px 2px 8px; font-size: 11px; font-weight: 650; }
+#font-count { color: var(--muted); font-weight: normal; }
+#font-search { width: 100%; margin-bottom: 6px; }
+#font-list { height: 200px; overflow-y: auto; }
+.font-option { display: block; padding: 5px 8px; border-radius: 3px; cursor: pointer; overflow-wrap: anywhere; }
+.font-option[aria-selected="true"] { color: var(--accent); font-weight: 650; }
+.font-option.active, .font-option:hover { background: var(--hover); outline: 1px solid var(--accent); outline-offset: -1px; }
+#no-fonts { margin: 6px; color: var(--muted); font-size: 11px; }
+#line-presets { display: flex; gap: 5px; }
+#line-presets button { flex: 1; flex-direction: column; height: 64px; border-color: var(--line); gap: 5px; }
+.line-preview { display: block; width: 30px; height: 27px; background: repeating-linear-gradient(to bottom, currentColor 0 2px, transparent 2px 5px); }
+.line-preview.one-fifteen { background: repeating-linear-gradient(to bottom, currentColor 0 2px, transparent 2px 6px); }
+.line-preview.one-half { background: repeating-linear-gradient(to bottom, currentColor 0 2px, transparent 2px 8px); }
+.line-preview.double { background: repeating-linear-gradient(to bottom, currentColor 0 2px, transparent 2px 12px); }
+#line-spacing-form { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); }
+#line-spacing-form h2 { flex-basis: 100%; margin-bottom: 3px; }
+#line-spacing-form label { display: flex; flex-direction: column; gap: 3px; font-size: 10px; color: var(--muted); }
+#line-spacing-mode { max-width: 150px; width: 142px; }
+.percent-input { display: flex; align-items: center; gap: 4px; }
+#line-spacing { width: 68px; }
+
+#style-list { display: flex; flex-direction: column; gap: 3px; }
+.style-option { justify-content: space-between; width: 100%; height: auto; min-height: 38px; padding: 7px 10px; }
+.style-check { visibility: hidden; font-size: 14px; }
+.style-option[aria-pressed="true"] .style-check { visibility: visible; }
+.style-h1 { font-size: 20px; font-weight: 700; }
+.style-h2 { font-size: 18px; font-weight: 650; }
+.style-h3 { font-size: 16px; font-weight: 600; }
+.style-blockquote { border-inline-start: 2px solid var(--muted); padding-inline-start: 8px; font-style: italic; }
+.style-pre { font-family: ui-monospace, monospace; }
+#palette { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin: 2px 0 12px; }
+.swatch { background: var(--swatch); height: 28px; border: 1px solid color-mix(in srgb, var(--surface-text) 35%, transparent); }
+.swatch:hover:not(:disabled) { background: var(--swatch); outline: 2px solid var(--accent); outline-offset: 1px; }
+.color-form { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding-top: 10px; border-top: 1px solid var(--line); }
+input[type="color"] { width: 30px; height: 28px; padding: 0; border: 0; background: transparent; }
+#color-hex { width: 84px; font: 11px ui-monospace, monospace; }
+#clear-highlight { flex-basis: 100%; border-color: var(--line); }
+#link-form { display: flex; flex-wrap: wrap; align-items: end; gap: 12px 8px; }
+#link-form label { flex-basis: 100%; font-size: 11px; color: var(--muted); }
+#link-form input { display: block; width: 100%; margin-top: 4px; }
+#link-form button { border-color: var(--line); }
+#emoji-search { width: 100%; }
+#emoji-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px; margin-top: 8px; height: 200px; overflow-y: auto; align-content: start; }
+.emoji { font: 21px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; height: 32px; min-width: 0; padding: 0; }
+#no-emoji { font-size: 11px; color: var(--muted); }
+@media (forced-colors: active) { .swatch { forced-color-adjust: none; } }

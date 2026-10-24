@@ -1,17 +1,16 @@
-:root { color-scheme: light dark; font: 14px/1.55 system-ui, sans-serif; color: #263c34; background: #f5f7f6; --accent: #187866; --surface: #fff; --muted: #5d7067; --border: #d9e4dd; }
+:root { font: 14px/1.55 system-ui, sans-serif; background: var(--surface); color: var(--surface-text); }
 * { box-sizing: border-box; }
 body { margin: 0; padding: 40px 24px; }
 main { max-width: 650px; margin: 0 auto; }
 header { display: flex; align-items: center; gap: 15px; margin-bottom: 28px; }
 h1 { font-size: 25px; letter-spacing: -.6px; margin: 0; }
 header p { color: var(--muted); margin: 0; }
-section { border: 1px solid var(--border); border-radius: 12px; padding: 24px; background: var(--surface); }
+section { border: 1px solid var(--line); border-radius: 12px; padding: 24px; background: var(--surface); }
 h2 { font-size: 16px; margin: 0 0 20px; }
 .setting { display: flex; gap: 12px; align-items: start; margin-bottom: 23px; cursor: pointer; }
 input { margin: 5px 0 0; accent-color: var(--accent); width: 17px; height: 17px; flex: 0 0 auto; }
 input:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 small { display: block; margin-top: 3px; color: var(--muted); font-size: 12px; }
-.note { border-top: 1px solid var(--border); padding-top: 17px; margin: 0; color: var(--muted); font-size: 12px; }
+.note { border-top: 1px solid var(--line); padding-top: 17px; margin: 0; color: var(--muted); font-size: 12px; }
 #status { color: var(--muted); font-size: 12px; }
-#error { color: #bc3543; }
-@media (prefers-color-scheme: dark) { :root { color: #e3eee7; background: #1e2622; --accent: #75d4b5; --surface: #27322c; --muted: #acbcb2; --border: #425047; } #error { color: #ffb4b4; } }
+#error { color: var(--error-text); }

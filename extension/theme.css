@@ -1,0 +1,18 @@
+:root {
+  color-scheme: light dark;
+  --background: ButtonFace;
+  --text: ButtonText;
+  --surface: Canvas;
+  --surface-text: CanvasText;
+  --field: Field;
+  --field-text: FieldText;
+  --hover: color-mix(in srgb, currentColor 10%, transparent);
+  --line: color-mix(in srgb, currentColor 25%, transparent);
+  --muted: GrayText;
+  --accent: AccentColor;
+  --accent-text: AccentColorText;
+  --pressed: color-mix(in srgb, AccentColor 16%, transparent);
+  --error-text: light-dark(#a4000f, #ff9aa2);
+  color: var(--text);
+  background: var(--background);
+}
