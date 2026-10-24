@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Thunderbird Rich Text",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "Thoughtful formatting for your emails: fonts, colors, highlights, lists, links, and emoji in Thunderbird's own editor.",
   "browser_specific_settings": {
     "gecko": {
@@ -13,22 +13,23 @@
   "background": {
     "scripts": ["shared.js", "background.js"]
   },
-  "compose_action": {
-    "default_title": "Rich Text — format your message",
-    "default_label": "Rich Text",
-    "default_area": "maintoolbar",
-    "default_icon": "icons/rich-text.svg",
-    "default_popup": "popup/popup.html"
+  "options_ui": {
+    "page": "options/options.html",
+    "open_in_tab": true
+  },
+  "experiment_apis": {
+    "composeToolbar": {
+      "schema": "experiments/compose-toolbar/schema.json",
+      "parent": {
+        "scopes": ["addon_parent"],
+        "paths": [["composeToolbar"]],
+        "script": "experiments/compose-toolbar/api.js"
+      }
+    }
   },
   "icons": {
     "32": "icons/rich-text.svg",
     "64": "icons/rich-text.svg"
-  },
-  "commands": {
-    "_execute_compose_action": {
-      "suggested_key": { "default": "Alt+Shift+R" },
-      "description": "Open Rich Text in the compose window"
-    }
   },
   "content_security_policy": "script-src 'self'; object-src 'none'; base-uri 'none'"
 }

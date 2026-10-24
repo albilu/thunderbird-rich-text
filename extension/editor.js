@@ -6,6 +6,7 @@
   const { CHANNEL, TOGGLES, normalizeCommand, linkHtml } = RichText;
   let savedRange = null;
   let executing = false;
+  let stateTimer;
 
   function validRange(range) {
     return range && document.body?.contains(range.startContainer) && document.body.contains(range.endContainer);
@@ -29,6 +30,11 @@
         savedRange.selectNodeContents(document.body);
         savedRange.collapse(true);
       }
+    }
+    if (selection.rangeCount) {
+      const current = selection.getRangeAt(0);
+      if (current.startContainer === savedRange.startContainer && current.startOffset === savedRange.startOffset &&
+          current.endContainer === savedRange.endContainer && current.endOffset === savedRange.endOffset) return selection;
     }
     selection.removeAllRanges();
     selection.addRange(savedRange);
@@ -87,14 +93,28 @@
       document.execCommand("styleWithCSS", false, wasCss);
       executing = false;
       rememberSelection(true);
+      publishState();
     }
     return getState();
   }
 
-  document.addEventListener("selectionchange", () => rememberSelection());
-  document.addEventListener("input", () => rememberSelection());
-  document.addEventListener("mouseup", () => rememberSelection());
-  document.addEventListener("keyup", () => rememberSelection());
+  function publishState() {
+    clearTimeout(stateTimer);
+    stateTimer = setTimeout(() => {
+      try {
+        browser.runtime.sendMessage({ channel: CHANNEL, action: "editorState", state: getState() })
+          .catch(() => { /* Extension reload or window closing. */ });
+      } catch { /* An editor can be destroyed while a state update is pending. */ }
+    }, 60);
+  }
+  function selectionChanged() {
+    rememberSelection();
+    if (!executing && document.hasFocus()) publishState();
+  }
+  document.addEventListener("selectionchange", selectionChanged);
+  document.addEventListener("input", selectionChanged);
+  document.addEventListener("mouseup", selectionChanged);
+  document.addEventListener("keyup", selectionChanged);
   window.addEventListener("blur", () => rememberSelection(true));
   rememberSelection(true);
 

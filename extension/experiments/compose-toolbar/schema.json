@@ -1,0 +1,33 @@
+[
+  {
+    "namespace": "composeToolbar",
+    "description": "Mount the packaged Rich Text toolbar outside the message body and control its visibility.",
+    "functions": [
+      {
+        "name": "configure",
+        "type": "function",
+        "async": true,
+        "parameters": [{ "name": "settings", "type": "object", "properties": {
+          "showToolbar": { "type": "boolean" },
+          "hideNativeToolbar": { "type": "boolean" }
+        }}]
+      },
+      {
+        "name": "setHeight",
+        "type": "function",
+        "async": true,
+        "description": "Size a connected toolbar; only then allow it to hide the native formatting toolbar.",
+        "parameters": [
+          { "name": "tabId", "type": "integer" },
+          { "name": "height", "type": "integer", "minimum": 36, "maximum": 360 }
+        ]
+      },
+      {
+        "name": "focusEditor",
+        "type": "function",
+        "async": true,
+        "parameters": [{ "name": "tabId", "type": "integer" }]
+      }
+    ]
+  }
+]

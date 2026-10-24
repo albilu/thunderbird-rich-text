@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rich Text settings</title>
+  <link rel="stylesheet" href="options.css">
+  <script src="../shared.js" defer></script>
+  <script src="options.js" defer></script>
+</head>
+<body>
+  <main>
+    <header><img src="../icons/rich-text.svg" width="44" height="44" alt=""><div><h1>Rich Text</h1><p>Your compose window, your way.</p></div></header>
+    <section aria-labelledby="toolbar-heading">
+      <h2 id="toolbar-heading">Compose toolbar</h2>
+      <label class="setting"><input id="show-toolbar" type="checkbox" disabled><span><strong>Show the Rich Text toolbar</strong><small>Keep formatting tools directly above your message, below Thunderbird’s formatting toolbar.</small></span></label>
+      <label class="setting"><input id="hide-native" type="checkbox" disabled><span><strong>Hide Thunderbird’s formatting toolbar</strong><small>Enabled by default. Applies only while the Rich Text toolbar is shown.</small></span></label>
+      <p class="note">Changes apply to all open compose windows and are saved automatically. Hiding Rich Text restores Thunderbird’s own formatting toolbar.</p>
+    </section>
+    <p id="status" role="status">Loading settings…</p>
+    <p id="error" role="alert" hidden></p>
+  </main>
+</body>
+</html>

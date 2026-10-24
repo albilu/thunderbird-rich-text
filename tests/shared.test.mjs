@@ -55,3 +55,14 @@ test('link input validation rejects non-string and oversized labels', () => {
   assert.deepEqual(normalizeCommand('link', { url: 'https://example.com' }), { command: 'link', value: { url: 'https://example.com/', text: '' } });
   for (const text of [42, {}, 'x'.repeat(2001)]) assert.throws(() => normalizeCommand('link', { url: 'https://example.com', text }));
 });
+
+test('toolbar preferences use safe defaults and preserve explicit choices', () => {
+  const { normalizeToolbarSettings } = globalThis.RichText;
+  for (const value of [undefined, null, {}, { showToolbar: 'no', hideNativeToolbar: 1 }]) {
+    assert.deepEqual(normalizeToolbarSettings(value), { showToolbar: true, hideNativeToolbar: true });
+  }
+  assert.deepEqual(normalizeToolbarSettings({ showToolbar: false, hideNativeToolbar: true, unexpected: 'ignored' }),
+    { showToolbar: false, hideNativeToolbar: true });
+  assert.deepEqual(normalizeToolbarSettings({ hideNativeToolbar: false }),
+    { showToolbar: true, hideNativeToolbar: false });
+});

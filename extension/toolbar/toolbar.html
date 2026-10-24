@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rich Text toolbar</title>
+  <link rel="stylesheet" href="toolbar.css">
+  <script src="../shared.js" defer></script>
+  <script src="toolbar.js" defer></script>
+</head>
+<body>
+  <div id="strip" role="toolbar" aria-label="Rich Text formatting">
+    <span class="brand"><img src="../icons/rich-text.svg" width="22" height="22" alt="">Rich Text</span>
+    <div class="group typography" role="group" aria-label="Typography">
+      <select id="block" data-command="formatBlock" aria-label="Paragraph style" title="Paragraph style" disabled><option value="">Style</option></select>
+      <select id="font" data-command="fontName" aria-label="Font family" title="Font family" disabled><option value="">Font</option></select>
+      <select id="size" data-command="fontSize" aria-label="Font size" title="Font size" disabled><option value="">Size</option></select>
+    </div>
+    <div class="group" role="group" aria-label="Text styles">
+      <button data-command="bold" class="bold" aria-label="Bold" title="Bold" aria-pressed="false" disabled>B</button>
+      <button data-command="italic" class="italic" aria-label="Italic" title="Italic" aria-pressed="false" disabled>I</button>
+      <button data-command="underline" class="underline" aria-label="Underline" title="Underline" aria-pressed="false" disabled>U</button>
+      <button data-command="strikeThrough" class="strike" aria-label="Strikethrough" title="Strikethrough" aria-pressed="false" disabled>S</button>
+    </div>
+    <div class="group" role="group" aria-label="Superscript and subscript">
+      <button data-command="superscript" aria-label="Superscript" title="Superscript" aria-pressed="false" disabled>x<sup>2</sup></button>
+      <button data-command="subscript" aria-label="Subscript" title="Subscript" aria-pressed="false" disabled>x<sub>2</sub></button>
+    </div>
+    <div class="group" role="group" aria-label="Text colors">
+      <button id="text-color" class="color-tool" data-tray="color" data-color="foreColor" aria-label="Text color" title="Text color" aria-controls="color-tray" aria-expanded="false" disabled>A<span class="color-line" id="text-color-line"></span></button>
+      <button id="highlight" class="color-tool" data-tray="color" data-color="hiliteColor" aria-label="Highlight and text background" title="Highlight and text background" aria-controls="color-tray" aria-expanded="false" disabled><span data-icon="marker"></span><span class="color-line" id="highlight-line"></span></button>
+    </div>
+    <div class="group" role="group" aria-label="Alignment">
+      <button data-command="justifyLeft" data-icon="left" aria-label="Align left" title="Align left" aria-pressed="false" disabled></button>
+      <button data-command="justifyCenter" data-icon="center" aria-label="Align center" title="Align center" aria-pressed="false" disabled></button>
+      <button data-command="justifyRight" data-icon="right" aria-label="Align right" title="Align right" aria-pressed="false" disabled></button>
+      <button data-command="justifyFull" data-icon="justify" aria-label="Justify" title="Justify" aria-pressed="false" disabled></button>
+    </div>
+    <div class="group" role="group" aria-label="Lists and indentation">
+      <button data-command="insertUnorderedList" data-icon="bullets" aria-label="Bulleted list" title="Bulleted list" aria-pressed="false" disabled></button>
+      <button data-command="insertOrderedList" data-icon="numbers" aria-label="Numbered list" title="Numbered list" aria-pressed="false" disabled></button>
+      <button data-command="outdent" data-icon="outdent" aria-label="Decrease indent" title="Decrease indent" disabled></button>
+      <button data-command="indent" data-icon="indent" aria-label="Increase indent" title="Increase indent" disabled></button>
+    </div>
+    <div class="group" role="group" aria-label="Insert">
+      <button data-tray="link" data-icon="link" aria-label="Insert or edit a link" title="Insert or edit a link" aria-controls="link-tray" aria-expanded="false" disabled></button>
+      <button data-tray="emoji" data-icon="smile" aria-label="Insert emoji" title="Insert emoji" aria-controls="emoji-tray" aria-expanded="false" disabled></button>
+      <button data-command="insertHorizontalRule" data-icon="rule" aria-label="Insert a divider" title="Insert a divider" disabled></button>
+    </div>
+    <div class="group" role="group" aria-label="History and clear formatting">
+      <button data-command="undo" data-icon="undo" aria-label="Undo" title="Undo" disabled></button>
+      <button data-command="redo" data-icon="redo" aria-label="Redo" title="Redo" disabled></button>
+      <button data-command="removeFormat" data-icon="clear" aria-label="Clear inline formatting" title="Clear inline formatting" disabled></button>
+    </div>
+    <span id="mode" hidden>Plain text</span>
+  </div>
+
+  <div id="trays" hidden>
+    <div class="tray-heading"><h2 id="tray-title"></h2><button id="close-tray" aria-label="Close tools" title="Close tools (Escape)" data-icon="close"></button></div>
+    <section id="color-tray" aria-label="Color tools" hidden>
+      <div id="palette" role="group" aria-label="Preset colors"></div>
+      <form id="color-form" class="color-form">
+        <label class="sr-only" for="color-picker">Custom color picker</label><input id="color-picker" type="color" value="#fef08a">
+        <label class="sr-only" for="color-hex">Hex color</label><input id="color-hex" type="text" value="#fef08a" pattern="#[a-fA-F0-9]{6}" maxlength="7" required spellcheck="false">
+        <button type="submit" class="label-button primary">Apply color</button>
+        <button type="button" id="clear-highlight" class="label-button">Clear highlight</button>
+      </form>
+    </section>
+    <section id="link-tray" aria-label="Link tools" hidden>
+      <form id="link-form">
+        <label>Address<input id="link-url" type="text" inputmode="url" placeholder="https://example.com" spellcheck="false" autocomplete="off" maxlength="2048" required></label>
+        <label>Display text (optional)<input id="link-text" type="text" placeholder="Use selected text or the address" maxlength="2000"></label>
+        <button type="submit" class="label-button primary">Apply link</button>
+        <button type="button" class="label-button" data-command="unlink">Remove link</button>
+      </form>
+    </section>
+    <section id="emoji-tray" aria-label="Emoji tools" hidden>
+      <label class="sr-only" for="emoji-search">Search emoji</label><input id="emoji-search" type="search" placeholder="Search emoji…" autocomplete="off">
+      <div id="emoji-grid" role="group" aria-label="Emoji"></div>
+      <p id="no-emoji" hidden>No matching emoji. Try “happy”, “thanks”, or “work”.</p>
+    </section>
+  </div>
+  <div id="error" role="alert" hidden></div>
+  <button id="retry" class="label-button" hidden>Reconnect to the message</button>
+  <span id="status" class="sr-only" role="status">Connecting to the message…</span>
+</body>
+</html>

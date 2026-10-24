@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Real Thunderbird tests using a disposable offline profile and Marionette.
 
-Requires Thunderbird, Xvfb, xdotool, and xfwm4 on Linux; no Python packages are needed.
+Requires Thunderbird, Xvfb, and xfwm4 on Linux; no Python packages are needed.
 Never opens the user's profile, connects a mail account, or sends a message.
 """
 import base64
@@ -83,6 +83,36 @@ class Marionette:
             arguments[1], arguments[2], {sandboxName: 'default', newSandbox: false, timeout: 20000});
         """, view_type, code, list(args))
 
+    def page_script(self, path, code, *args):
+        return self.async_script("""
+          const url = testExtension.baseURI.resolve(arguments[0]);
+          const view = [...testExtension.views].find(view => view.uri?.spec === url);
+          if (!view) throw new Error('Extension page unavailable: ' + arguments[0]);
+          return await view.browsingContext.currentWindowGlobal.getActor('MarionetteCommands').executeScript(
+            arguments[1], arguments[2], {sandboxName: 'default', newSandbox: false, timeout: 20000});
+        """, path, code, list(args))
+
+    def toolbar_script(self, tab, code, *args):
+        return self.page_script(f"toolbar/toolbar.html?tabId={tab['id']}", code, *args)
+
+
+def toolbar_ready(client, tab):
+    url = f"toolbar/toolbar.html?tabId={tab['id']}"
+    client.wait(f"return [...testExtension.views].some(view => view.uri?.spec === testExtension.baseURI.resolve({json.dumps(url)}));")
+    result = client.toolbar_script(tab, """
+      return new Promise((resolve, reject) => {
+        const deadline = Date.now() + 8000;
+        const timer = setInterval(() => {
+          const error = document.getElementById('error')?.textContent;
+          if (error) { clearInterval(timer); resolve({error}); }
+          else if (document.querySelector('[data-tray=emoji]') && !document.querySelector('[data-tray=emoji]').disabled) {
+            clearInterval(timer); resolve({ready: true});
+          } else if (Date.now() > deadline) { clearInterval(timer); reject(new Error('Toolbar did not connect')); }
+        }, 30);
+      });
+    """)
+    assert result.get("ready"), result
+
 
 def basic_tests(client):
     version = client.script("return Services.appinfo.version;")
@@ -116,6 +146,14 @@ def basic_tests(client):
       globalThis.testCompose = Services.wm.getMostRecentWindow('msgcompose');
     """, tab, ADDON_ID)
     client.wait("return Boolean(testCompose.GetCurrentEditor()?.document.getElementById('target'));")
+    toolbar_ready(client, tab)
+    assert client.script("return testCompose.document.getElementById('FormatToolbar').nextElementSibling.id;") == "rich-text-compose-toolbar"
+    assert client.script("return testCompose.document.getElementById('rich-text-toolbar-browser').getBoundingClientRect().height;") > 30
+    client.wait("return testCompose.getComputedStyle(testCompose.document.getElementById('FormatToolbar')).display === 'none';")
+    assert client.script("return !testCompose.document.getElementById('rich-text_thunderbird-rich-text_local-composeAction-toolbarbutton');")
+    assert client.extension_script("background", "return !window.wrappedJSObject.browser.runtime.getManifest().compose_action;")
+    assert client.toolbar_script(tab, "return !document.querySelector('#open-panel, [data-tray=settings]');")
+    print("PASS: toolbar replaces Thunderbird formatting by default without popup or launcher buttons", flush=True)
     client.script("""
       testCompose.focus();
       const doc = testCompose.GetCurrentEditor().document;
@@ -128,15 +166,12 @@ def basic_tests(client):
       return selection.toString();
     """)
     time.sleep(0.2)
-    status = open_popup(client)
-    assert "error" not in status, status
-    assert status["selection"] == "colorful", status
-    print("PASS: popup connects and preserves the native selection", flush=True)
-    status = client.extension_script("popup", """
-      document.querySelector('[data-command=bold]').click();
+    status = client.toolbar_script(tab, """
+      const button = document.querySelector('[data-command=bold]');
+      button.focus(); button.click();
       return new Promise(resolve => {
         const timer = setInterval(() => {
-          if (document.getElementById('tools').disabled) return;
+          if (document.querySelector('[data-tray=emoji]').disabled) return;
           clearInterval(timer);
           resolve({pressed: document.querySelector('[data-command=bold]').getAttribute('aria-pressed'), error: document.getElementById('error').textContent});
         }, 50);
@@ -144,54 +179,16 @@ def basic_tests(client):
     """)
     assert not status.get("error"), status
     assert status["pressed"] == "true", status
-    print("PASS: bold button formats the selected text", flush=True)
+    assert editor_snapshot(client)["selection"] == "colorful"
+    print("PASS: toolbar bold button formats and preserves the native selection", flush=True)
     return tab
-
-
-def popup_ready(client):
-    result = client.extension_script("popup", """
-      return new Promise((resolve, reject) => {
-        const deadline = Date.now() + 8000;
-        const timer = setInterval(() => {
-          const error = document.getElementById('error')?.textContent;
-          if (error) { clearInterval(timer); resolve({error}); }
-          else if (document.getElementById('tools') && !document.getElementById('tools').disabled) {
-            clearInterval(timer);
-            resolve({selection: document.getElementById('selection-preview').textContent,
-              mode: document.getElementById('mode').textContent});
-          } else if (Date.now() > deadline) { clearInterval(timer); reject(new Error('Popup did not become ready')); }
-        }, 30);
-      });
-    """)
-    assert not result.get("error"), result
-    return result
-
-
-def open_popup(client):
-    coords = client.script("""
-      testCompose.focus();
-      const button = testCompose.document.getElementById('rich-text_thunderbird-rich-text_local-composeAction-toolbarbutton');
-      const rect = button.getBoundingClientRect();
-      return {x: Math.round(testCompose.mozInnerScreenX + rect.x + rect.width / 2),
-        y: Math.round(testCompose.mozInnerScreenY + rect.y + rect.height / 2)};
-    """)
-    subprocess.run(['xdotool', 'mousemove', str(coords['x']), str(coords['y']), 'click', '1'], env=client.test_env, check=True)
-    client.wait("return [...testExtension.views].some(view => view.viewType === 'popup');")
-    result = popup_ready(client)
-    client.wait("return [...testCompose.document.querySelectorAll('.webextension-popup-panel')].some(panel => panel.state === 'open');")
-    return result
-
-
-def close_popup(client):
-    client.script("for (const panel of testCompose.document.querySelectorAll('.webextension-popup-panel')) panel.hidePopup();")
-    client.wait("return ![...testExtension.views].some(view => view.viewType === 'popup');")
 
 
 def send_command(client, tab, command, value=None, expect_ok=True):
     message = {"channel": "thunderbird-rich-text/v1", "action": "command", "tabId": tab["id"], "command": command}
     if value is not None:
         message["value"] = value
-    result = client.extension_script("popup", "return window.wrappedJSObject.browser.runtime.sendMessage(arguments[0]);", message)
+    result = client.toolbar_script(tab, "return window.wrappedJSObject.browser.runtime.sendMessage(arguments[0]);", message)
     assert result["ok"] == expect_ok, (command, result)
     return result
 
@@ -233,25 +230,184 @@ def select_range(client, start, end):
 
 
 def reset_fixture(client, tab, start=6, end=14):
-    close_popup(client)
     client.extension_script("background", """
       return window.wrappedJSObject.browser.compose.setComposeDetails(arguments[0], {
         body: '<p id="target">Hello colorful world.</p><p id="untouched">Keep this paragraph.</p>'
       });
     """, tab["id"])
     select_range(client, start, end)
-    open_popup(client)
+
+
+def toolbar_action(client, tab, code):
+    result = client.toolbar_script(tab, code + """
+      return new Promise((resolve, reject) => {
+        const deadline = Date.now() + 8000;
+        const timer = setInterval(() => {
+          if (!document.querySelector('[data-tray=emoji]').disabled) {
+            clearInterval(timer); resolve({error: document.getElementById('error').textContent});
+          } else if (Date.now() > deadline) { clearInterval(timer); reject(new Error('Toolbar action timed out')); }
+        }, 30);
+      });
+    """)
+    assert not result.get("error"), result
+
+
+def toolbar_tests(client):
+    tab = client.extension_script("background", """
+      return window.wrappedJSObject.browser.compose.beginNew({
+        body: '<p id="target">Hello colorful world.</p><p id="untouched">Keep this paragraph.</p>',
+        subject: 'Toolbar integration test', isPlainText: false
+      });
+    """)
+    handles = client.call("WebDriver:GetWindowHandles")
+    handles = handles.get("value", handles) if isinstance(handles, dict) else handles
+    client.call("WebDriver:SwitchToWindow", {"handle": handles[-1]})
+    client.script("""
+      const { ExtensionParent } = ChromeUtils.importESModule('resource://gre/modules/ExtensionParent.sys.mjs');
+      globalThis.testExtension = ExtensionParent.GlobalManager.extensionMap.get(arguments[0]);
+      globalThis.testCompose = Services.wm.getMostRecentWindow('msgcompose');
+    """, ADDON_ID)
+    toolbar_ready(client, tab)
+    others = client.script("""
+      return [...Services.wm.getEnumerator('msgcompose')].filter(win => win !== testCompose)
+        .map(win => win.GetCurrentEditor().document.body.innerHTML);
+    """)
+    native_collapsed = client.script("return testCompose.document.getElementById('FormatToolbar').getAttribute('collapsed');")
+    select_range(client, 6, 14)
+    toolbar_action(client, tab, "const button = document.querySelector('[data-command=bold]'); button.focus(); button.click();")
+    assert "font-weight: bold" in editor_snapshot(client)["html"]
+    assert editor_snapshot(client)["selection"] == "colorful"
+    toolbar_action(client, tab, "const select = document.getElementById('font'); select.focus(); select.value = 'Georgia'; select.dispatchEvent(new Event('change', {bubbles: true}));")
+    assert "Georgia" in editor_snapshot(client)["html"]
+    toolbar_action(client, tab, """
+      document.getElementById('highlight').click();
+      const input = document.getElementById('color-hex'); input.focus(); input.value = '#dbeafe';
+      document.getElementById('color-form').requestSubmit();
+    """)
+    assert editor_snapshot(client)["highlight"] == "rgb(219, 234, 254)"
+    client.toolbar_script(tab, "document.querySelector('[data-tray=link]').click();")
+    client.toolbar_script(tab, """
+      return new Promise(resolve => {
+        const timer = setInterval(() => {
+          if (document.activeElement.id === 'link-url') {clearInterval(timer); resolve(true);}
+        }, 30);
+      });
+    """)
+    toolbar_action(client, tab, """
+      document.getElementById('link-url').value = 'https://example.com/toolbar';
+      document.getElementById('link-form').requestSubmit();
+    """)
+    assert editor_snapshot(client)["links"] == [{"url": "https://example.com/toolbar", "text": "colorful"}]
+    select_range(client, 14, 14)
+    toolbar_action(client, tab, """
+      document.querySelector('[data-tray=emoji]').click();
+      document.querySelector('#emoji-grid button[title="party celebration congratulations"]').click();
+    """)
+    assert "colorful🎉" in editor_snapshot(client)["text"]
+    assert client.script("return testCompose.GetCurrentEditor().document.querySelector('[id^=rich-text]') === null;")
+    assert client.script("""
+      return [...Services.wm.getEnumerator('msgcompose')].filter(win => win !== testCompose)
+        .map(win => win.GetCurrentEditor().document.body.innerHTML);
+    """) == others
+    print("PASS: toolbar fonts, styles, custom highlights, links, and emoji preserve the selection and other drafts", flush=True)
+
+    # Native undo changes the editor independently of the toolbar; its state must follow.
+    client.script("testCompose.GetCurrentEditor().document.execCommand('undo');")
+    select_range(client, 0, 5)
+    client.toolbar_script(tab, """
+      return new Promise((resolve, reject) => {
+        const deadline = Date.now() + 5000;
+        const timer = setInterval(() => {
+          if (document.querySelector('[data-command=bold]').getAttribute('aria-pressed') === 'false') {clearInterval(timer); resolve(true);}
+          else if (Date.now() > deadline) {clearInterval(timer); reject(new Error('Toolbar selection state did not update'));}
+        }, 30);
+      });
+    """)
+    toolbar_action(client, tab, "document.querySelector('[data-command=italic]').click();")
+    assert "font-style: italic" in editor_snapshot(client)["html"]
+    print("PASS: toolbar state follows native selections", flush=True)
+
+    client.script("testCompose.resizeTo(1148, 840);")
+    time.sleep(0.2)
+    if shutil.which("import"):
+        subprocess.run(["import", "-window", "root", str(RESULTS / "toolbar.png")], env=client.test_env, check=True)
+    client.script("testCompose.resizeTo(720, 840);")
+    time.sleep(0.2)
+    layout = client.toolbar_script(tab, "return {width: innerWidth, scroll: document.documentElement.scrollWidth, height: innerHeight};")
+    assert layout["scroll"] <= layout["width"] and 36 <= layout["height"] <= 360, layout
+    client.script("testCompose.resizeTo(1148, 840);")
+
+    assert client.script("return testCompose.document.getElementById('FormatToolbar').getAttribute('collapsed');") == native_collapsed
+    assert client.script("""
+      return [...Services.wm.getEnumerator('msgcompose')].every(win =>
+        win.document.getElementById('FormatToolbar').hasAttribute('data-rich-text-hidden'));
+    """)
+    assert client.async_script("""
+      const { AddonManager } = ChromeUtils.importESModule('resource://gre/modules/AddonManager.sys.mjs');
+      const addon = await AddonManager.getAddonByID(arguments[0]);
+      return addon.optionsURL === testExtension.baseURI.resolve('options/options.html');
+    """, ADDON_ID)
+    client.extension_script("background", "return window.wrappedJSObject.browser.runtime.openOptionsPage();")
+    client.wait("return [...testExtension.views].some(view => view.uri?.spec === testExtension.baseURI.resolve('options/options.html'));")
+    settings = client.page_script("options/options.html", """
+      return new Promise(resolve => {
+        const timer = setInterval(() => {
+          const show = document.getElementById('show-toolbar'), hide = document.getElementById('hide-native');
+          if (show && !show.disabled) {clearInterval(timer); resolve({show: show.checked, hide: hide.checked});}
+        }, 30);
+      });
+    """)
+    assert settings == {"show": True, "hide": True}, settings
+    client.page_script("options/options.html", "document.getElementById('hide-native').click();")
+    client.wait("return testCompose.getComputedStyle(testCompose.document.getElementById('FormatToolbar')).display !== 'none';")
+    assert client.script("""
+      return [...Services.wm.getEnumerator('msgcompose')].every(win =>
+        !win.document.getElementById('FormatToolbar').hasAttribute('data-rich-text-hidden'));
+    """)
+    client.page_script("options/options.html", "document.getElementById('hide-native').click();")
+    client.wait("return testCompose.getComputedStyle(testCompose.document.getElementById('FormatToolbar')).display === 'none';")
+    client.page_script("options/options.html", "document.getElementById('show-toolbar').click();")
+    client.wait("return !testCompose.document.getElementById('rich-text-compose-toolbar');")
+    assert client.script("return !testCompose.document.getElementById('FormatToolbar').hasAttribute('data-rich-text-hidden');")
+    assert client.script("return testCompose.document.getElementById('FormatToolbar').getAttribute('collapsed');") == native_collapsed
+    client.page_script("options/options.html", "document.getElementById('show-toolbar').click();")
+    toolbar_ready(client, tab)
+    client.wait("return testCompose.getComputedStyle(testCompose.document.getElementById('FormatToolbar')).display === 'none';")
+    print("PASS: Add-ons Manager preferences synchronize across compose windows and safely restore the native toolbar", flush=True)
+
+    body = editor_snapshot(client)["html"]
+    client.async_script("""
+      const { AddonManager } = ChromeUtils.importESModule('resource://gre/modules/AddonManager.sys.mjs');
+      const addon = await AddonManager.getAddonByID(arguments[0]);
+      await addon.reload();
+    """, ADDON_ID)
+    client.wait("""
+      const { ExtensionParent } = ChromeUtils.importESModule('resource://gre/modules/ExtensionParent.sys.mjs');
+      globalThis.testExtension = ExtensionParent.GlobalManager.extensionMap.get('rich-text@thunderbird-rich-text.local');
+      return testExtension && [...testExtension.views].some(view => view.viewType === 'background');
+    """)
+    toolbar_ready(client, tab)
+    client.wait("return testCompose.getComputedStyle(testCompose.document.getElementById('FormatToolbar')).display === 'none';")
+    assert client.script("return testCompose.document.querySelectorAll('#rich-text-compose-toolbar').length;") == 1
+    assert editor_snapshot(client)["html"] == body
+    client.async_script("""
+      const { AddonManager } = ChromeUtils.importESModule('resource://gre/modules/AddonManager.sys.mjs');
+      const addon = await AddonManager.getAddonByID(arguments[0]);
+      await addon.disable();
+    """, ADDON_ID)
+    assert client.script("""
+      return [...Services.wm.getEnumerator('msgcompose')].every(win =>
+        !win.document.getElementById('rich-text-compose-toolbar') &&
+        !win.document.getElementById('rich-text-toolbar-visibility') &&
+        !win.document.getElementById('FormatToolbar').hasAttribute('data-rich-text-hidden'));
+    """)
+    assert client.script("return testCompose.document.getElementById('FormatToolbar').getAttribute('collapsed');") == native_collapsed
+    assert editor_snapshot(client)["html"] == body
+    print("PASS: preferences survive reload; disabling removes all toolbar UI and restores Thunderbird without modifying drafts", flush=True)
 
 
 def run_tests(client):
     tab = basic_tests(client)
-    layout = client.extension_script("popup", """
-      return {footer: document.querySelector('footer').getBoundingClientRect().bottom,
-        height: innerHeight, width: innerWidth, scrollWidth: document.documentElement.scrollWidth};
-    """)
-    assert layout["footer"] <= layout["height"] and layout["scrollWidth"] <= layout["width"], layout
-    if shutil.which("import"):
-        subprocess.run(["import", "-window", "root", str(RESULTS / "popup-dark.png")], env=client.test_env, check=True)
     snapshot = editor_snapshot(client)
     assert snapshot["selection"] == "colorful", snapshot
     assert snapshot["untouched"] == '<p id="untouched">Keep this paragraph.</p>', snapshot
@@ -317,7 +473,6 @@ def run_tests(client):
     assert "👩🏽‍💻" in editor_snapshot(client)["text"]
     print("PASS: Unicode insertion at a collapsed cursor and native history", flush=True)
 
-    close_popup(client)
     plain = client.extension_script("background", """
       return window.wrappedJSObject.browser.compose.beginNew({plainTextBody: 'Plain message', isPlainText: true});
     """)
@@ -329,21 +484,24 @@ def run_tests(client):
       globalThis.testExtension = ExtensionParent.GlobalManager.extensionMap.get(arguments[0]);
       globalThis.testCompose = Services.wm.getMostRecentWindow('msgcompose');
     """, ADDON_ID)
+    toolbar_ready(client, plain)
     select_range(client, 13, 13)
-    assert open_popup(client)["mode"] == "PLAIN TEXT"
+    assert client.toolbar_script(plain, "return !document.getElementById('mode').hidden;")
+    assert client.script("return testCompose.document.getElementById('rich-text-toolbar-browser').getBoundingClientRect().height;") > 30
     send_command(client, plain, "bold", expect_ok=False)
-    client.extension_script("popup", """
+    toolbar_action(client, plain, """
+      document.querySelector('[data-tray=emoji]').click();
       const search = document.getElementById('emoji-search');
       search.value = 'celebration'; search.dispatchEvent(new Event('input', {bubbles: true}));
       document.querySelector('#emoji-grid button').click();
     """)
-    popup_ready(client)
     assert "🎉" in editor_snapshot(client)["text"], editor_snapshot(client)
-    preferences = client.extension_script("popup", "return window.wrappedJSObject.browser.storage.local.get(null);")
+    preferences = client.toolbar_script(plain, "return window.wrappedJSObject.browser.storage.local.get(null);")
     assert preferences["recentEmoji"][0] == "🎉", preferences
     assert set(preferences).issubset({"recentEmoji", "customColors"}), preferences
-    assert client.extension_script("popup", "return document.getElementById('format-tab').disabled && document.getElementById('link-section').hidden;")
+    assert client.toolbar_script(plain, "return document.querySelector('[data-command=bold]').disabled && document.querySelector('[data-tray=link]').disabled;")
     print("PASS: plain-text safeguards, searchable emoji, and preference-only storage", flush=True)
+    toolbar_tests(client)
     print("All native integration checks passed.", flush=True)
     (RESULTS / "native-result.json").write_text(json.dumps({
         "thunderbird": client.script("return Services.appinfo.version;"),
@@ -353,8 +511,8 @@ def run_tests(client):
 
 def main():
     thunderbird = shutil.which(os.environ.get("THUNDERBIRD_BINARY", "thunderbird"))
-    if not thunderbird or not all(shutil.which(binary) for binary in ["Xvfb", "xdotool", "xfwm4"]):
-        raise SystemExit("Install Thunderbird, Xvfb, xdotool, and xfwm4 to run native integration tests.")
+    if not thunderbird or not all(shutil.which(binary) for binary in ["Xvfb", "xfwm4"]):
+        raise SystemExit("Install Thunderbird, Xvfb, and xfwm4 to run native integration tests.")
     RESULTS.mkdir(exist_ok=True)
     subprocess.run([sys.executable, str(ROOT / "scripts/package.py")], check=True)
     version = json.loads((ROOT / "extension/manifest.json").read_text())["version"]

@@ -2,7 +2,7 @@
 (() => {
   "use strict";
   const api = browser;
-  const { CHANNEL, normalizeCommand, isPlainTextCommand } = RichText;
+  const { CHANNEL, normalizeCommand, isPlainTextCommand, normalizeToolbarSettings } = RichText;
   const injections = new Map();
   const files = ["shared.js", "editor.js"];
 
@@ -25,14 +25,23 @@
     await Promise.allSettled(tabs.map(tab => ensureEditor(tab.id)));
   })().catch(error => console.error("Rich Text could not register its compose script:", error));
 
+  // Serialize preference changes so an older async startup read cannot override a newer choice.
+  let configuring = Promise.resolve();
+  function configureToolbar() {
+    configuring = configuring.then(async () => {
+      const { toolbarSettings } = await api.storage.local.get("toolbarSettings");
+      await api.composeToolbar.configure(normalizeToolbarSettings(toolbarSettings));
+    }).catch(error => console.error("Rich Text could not configure its toolbar:", error));
+  }
+  api.storage.onChanged.addListener((changes, area) => {
+    if (area === "local" && changes.toolbarSettings) configureToolbar();
+  });
+  configureToolbar();
+
   async function handle(message) {
     await ready;
-    let tabId = message.tabId;
-    if (message.action === "connect") {
-      const tabs = await api.tabs.query({ active: true, currentWindow: true });
-      tabId = tabs.find(tab => tab.type === "messageCompose")?.id;
-    }
-    if (!Number.isInteger(tabId)) throw new Error("Open Rich Text from a message compose window.");
+    const tabId = message.tabId;
+    if (!Number.isInteger(tabId)) throw new Error("This toolbar has no message compose window.");
     const tab = await api.tabs.get(tabId);
     if (tab.type !== "messageCompose") throw new Error("This message compose window is no longer available.");
     const { isPlainText } = await api.compose.getComposeDetails(tabId);
@@ -48,13 +57,28 @@
       throw new Error("Unknown Rich Text request.");
     }
     const response = await api.tabs.sendMessage(tabId, request);
-    if (!response?.ok) throw new Error(response?.error || "The message editor is not ready. Try opening Rich Text again.");
+    if (!response?.ok) throw new Error(response?.error || "The message editor is not ready. Try reconnecting the toolbar.");
     return { ...response, tabId, isPlainText };
   }
 
   api.runtime.onMessage.addListener((message, sender) => {
-    if (message?.channel !== CHANNEL || sender.id !== api.runtime.id ||
-        !sender.url?.startsWith(api.runtime.getURL("popup/"))) return undefined;
+    if (message?.channel !== CHANNEL || sender.id !== api.runtime.id) return undefined;
+    if (message.action === "editorState" && sender.tab && !sender.url?.startsWith(api.runtime.getURL(""))) {
+      // Compose scripts only send transient formatting state, never preferences or commands.
+      api.tabs.get(sender.tab.id).then(tab => {
+        if (tab.type === "messageCompose") return api.runtime.sendMessage({
+          channel: CHANNEL, action: "toolbarState", tabId: tab.id, state: message.state
+        });
+        return undefined;
+      }).catch(() => { /* The window or toolbar may have just closed. */ });
+      return undefined;
+    }
+    if (sender.url?.split("?")[0] !== api.runtime.getURL("toolbar/toolbar.html")) return undefined;
+    const boundValue = new URL(sender.url).searchParams.get("tabId");
+    const boundTab = Number(boundValue);
+    if (!boundValue || !Number.isInteger(boundTab) || message.tabId !== boundTab) {
+      return Promise.resolve({ ok: false, error: "This toolbar belongs to a different compose window." });
+    }
     return handle(message).catch(error => ({ ok: false, error: error.message }));
   });
 })();

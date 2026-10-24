@@ -1,7 +1,14 @@
-/* Shared by the background, popup, and isolated compose-script worlds. */
+/* Shared by the background, toolbar, options, and isolated compose-script worlds. */
 (() => {
   "use strict";
   const CHANNEL = "thunderbird-rich-text/v1";
+  const DEFAULT_TOOLBAR_SETTINGS = Object.freeze({ showToolbar: true, hideNativeToolbar: true });
+  function normalizeToolbarSettings(value) {
+    return {
+      showToolbar: typeof value?.showToolbar === "boolean" ? value.showToolbar : DEFAULT_TOOLBAR_SETTINGS.showToolbar,
+      hideNativeToolbar: typeof value?.hideNativeToolbar === "boolean" ? value.hideNativeToolbar : DEFAULT_TOOLBAR_SETTINGS.hideNativeToolbar
+    };
+  }
   const FONTS = [
     ["sans-serif", "Default sans serif"], ["serif", "Default serif"],
     ["Arial", "Arial"], ["Georgia", "Georgia"], ["Times New Roman", "Times New Roman"],
@@ -98,5 +105,6 @@
   }
 
   globalThis.RichText = Object.freeze({ CHANNEL, FONTS, SIZES, BLOCKS, TOGGLES, COLORS, HIGHLIGHTS,
-    EMOJI, normalizeColor, normalizeUrl, normalizeCommand, escapeHtml, linkHtml, isPlainTextCommand });
+    EMOJI, normalizeColor, normalizeUrl, normalizeCommand, escapeHtml, linkHtml, isPlainTextCommand,
+    DEFAULT_TOOLBAR_SETTINGS, normalizeToolbarSettings });
 })();
