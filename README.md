@@ -11,6 +11,8 @@ and emoji.**
 A dependency-free Thunderbird MailExtension plus a small Experiment API. It
 does not replace the editor, and all formatting happens locally.
 
+![Rich Text toolbar in Thunderbird, with a formatted email and the floating line-spacing dropdown](docs/images/compose-toolbar.png)
+
 ## Why?
 
 Thunderbird's built-in formatting toolbar is minimal: no custom fonts or point
