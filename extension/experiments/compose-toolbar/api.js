@@ -2,6 +2,7 @@
  * Other formatting and all UI logic run in unprivileged extension scripts.
  */
 var { ExtensionCommon } = ChromeUtils.importESModule("resource://gre/modules/ExtensionCommon.sys.mjs");
+var { ExtensionError } = ChromeUtils.importESModule("resource://gre/modules/ExtensionUtils.sys.mjs");
 var { ExtensionSupport } = ChromeUtils.importESModule("resource:///modules/ExtensionSupport.sys.mjs");
 var { ExtensionParent } = ChromeUtils.importESModule("resource://gre/modules/ExtensionParent.sys.mjs");
 var { BasePopup } = ChromeUtils.importESModule("resource:///modules/ExtensionPopups.sys.mjs");
@@ -21,6 +22,8 @@ var RichTextDropdown = class extends BasePopup {
     return super.destroy().finally(() => panel?.remove());
   }
 };
+
+var RichTextLocalizedError = class extends Error {};
 
 /* Native editor transactions for point sizes and paragraph spacing. No HTML replacement. */
 var RichTextTypography = (() => {
@@ -64,7 +67,7 @@ var RichTextTypography = (() => {
       if (began && end <= next) { range.setEnd(node, end - index); break; }
       index = next;
     }
-    if (!began) throw new Error("Select text in the message before changing its size.");
+    if (!began) throw new RichTextLocalizedError("errorSelectText");
     editor.selection.removeAllRanges();
     editor.selection.addRange(range);
   }
@@ -99,7 +102,7 @@ var RichTextTypography = (() => {
       style.fontSize = `${size}pt`;
       return { ...run, style: style.cssText };
     });
-    if (!runs.length) throw new Error("Select text in the message before changing its size.");
+    if (!runs.length) throw new RichTextLocalizedError("errorSelectText");
     for (const run of runs.reverse()) {
       selectOffsets(editor, run.start, run.end);
       editor.removeInlineProperty("font", "size");
@@ -142,8 +145,8 @@ var RichTextTypography = (() => {
       command === "paragraphSpacing" && value && typeof value === "object" && Object.keys(value).length > 0 &&
         ((Object.keys(value).length === 1 && ["increase", "decrease"].includes(value.adjust)) ||
         Object.entries(value).every(([key, amount]) => ["before", "after"].includes(key) && number(amount, 0, 200)));
-    if (!valid) throw new Error("Unsupported typography value.");
-    if (!editor.isDocumentEditable || !editor.isSelectionEditable || !editor.selection.rangeCount) throw new Error("The message editor is not ready for formatting.");
+    if (!valid) throw new RichTextLocalizedError("errorTypographyValue");
+    if (!editor.isDocumentEditable || !editor.isSelectionEditable || !editor.selection.rangeCount) throw new RichTextLocalizedError("errorEditorNotReady");
     editor.beginTransaction();
     try {
       if (command === "fontSize") setFontSize(editor, value);
@@ -151,7 +154,7 @@ var RichTextTypography = (() => {
         let blocks = paragraphs(editor);
         if (!blocks.length || blocks.includes(editor.document.body)) {
           // Give unwrapped body text its own paragraph, without styling the whole draft.
-          if (!editor.document.execCommand("formatBlock", false, "p")) throw new Error("Click in a paragraph before changing its spacing.");
+          if (!editor.document.execCommand("formatBlock", false, "p")) throw new RichTextLocalizedError("errorSelectParagraph");
           blocks = paragraphs(editor);
         }
         const properties = command === "lineSpacing" ? { "line-height": String(value) } : {
@@ -229,7 +232,7 @@ var composeToolbar = class extends ExtensionCommon.ExtensionAPI {
     record.tabId = this.extension.tabManager.getWrapper(window).id;
     const host = doc.createXULElement("vbox");
     host.id = "rich-text-compose-toolbar";
-    host.setAttribute("aria-label", "Rich Text formatting toolbar");
+    host.setAttribute("aria-label", this.extension.localizeMessage("nativeToolbarLabel"));
     host.style.minWidth = "0";
     host.style.width = "100%";
     const browser = doc.createXULElement("browser");
@@ -366,7 +369,7 @@ var composeToolbar = class extends ExtensionCommon.ExtensionAPI {
   async openDropdown(tabId, kind, anchor) {
     const record = this.getRecord(tabId);
     if (!record?.browser?.isConnected || (!record.window.gMsgCompose?.composeHTML && kind !== "emoji")) {
-      throw new Error("This formatting toolbar is no longer available.");
+      throw new ExtensionError(this.extension.localizeMessage("errorToolbarUnavailable"));
     }
     record.dropdown?.closePopup();
     const doc = record.window.document;
@@ -445,9 +448,13 @@ var composeToolbar = class extends ExtensionCommon.ExtensionAPI {
         },
         applyTypography: async (tabId, command, value) => {
           const record = this.getRecord(tabId);
-          if (!record || record.window.closed) throw new Error("This message compose window is no longer available.");
-          if (!record.window.gMsgCompose?.composeHTML) throw new Error("Typography requires an HTML message.");
-          RichTextTypography.apply(record.window.GetCurrentEditor(), command, value);
+          if (!record || record.window.closed) throw new ExtensionError(this.extension.localizeMessage("errorComposeClosed"));
+          if (!record.window.gMsgCompose?.composeHTML) throw new ExtensionError(this.extension.localizeMessage("errorTypographyHtml"));
+          try { RichTextTypography.apply(record.window.GetCurrentEditor(), command, value); }
+          catch (error) {
+            if (error instanceof RichTextLocalizedError) throw new ExtensionError(this.extension.localizeMessage(error.message));
+            throw error;
+          }
         },
         configure: async settings => {
           this.settings = { ...settings };

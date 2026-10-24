@@ -3,68 +3,69 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Rich Text toolbar</title>
+  <title data-i18n="toolbarTitle">Rich Text toolbar</title>
   <link rel="stylesheet" href="../theme.css">
   <script src="../theme.js" defer></script>
   <link rel="stylesheet" href="toolbar.css">
   <script src="../shared.js" defer></script>
+  <script src="../localize.js" defer></script>
   <script src="toolbar.js" defer></script>
 </head>
 <body>
-  <div id="strip" role="toolbar" aria-label="Rich Text formatting">
+  <div id="strip" role="toolbar" aria-label="Rich Text formatting" data-i18n-label="formatting">
     <span class="brand"><img src="../icons/rich-text.svg" width="22" height="22" alt="">Rich Text</span>
-    <div class="group typography" role="group" aria-label="Typography">
-      <button id="style-toggle" class="selector" data-menu="style" aria-label="Paragraph style" aria-haspopup="dialog" aria-expanded="false" title="Paragraph style" disabled><span id="block">Style</span><span class="chevron" data-icon="chevron"></span></button>
-      <button id="font-toggle" class="selector" data-menu="font" aria-label="Font family" aria-haspopup="dialog" aria-expanded="false" title="Search or choose a font family" disabled><span id="font">Font family</span><span class="chevron" data-icon="chevron"></span></button>
-      <label class="size-control"><input id="size" type="number" list="font-sizes" data-command="fontSize" min="1" max="200" step="any" aria-label="Font size in points" title="Font size in points (1–200)" placeholder="Size" disabled><span>pt</span></label>
+    <div class="group typography" role="group" aria-label="Typography" data-i18n-label="typography">
+      <button id="style-toggle" class="selector" data-menu="style" aria-label="Paragraph style" data-i18n-label="paragraphStyle" aria-haspopup="dialog" aria-expanded="false" title="Paragraph style" data-i18n-title="paragraphStyle" disabled><span id="block" data-i18n="style">Style</span><span class="chevron" data-icon="chevron"></span></button>
+      <button id="font-toggle" class="selector" data-menu="font" aria-label="Font family" data-i18n-label="fontFamily" aria-haspopup="dialog" aria-expanded="false" title="Search or choose a font family" data-i18n-title="chooseFont" disabled><span id="font" data-i18n="fontFamily">Font family</span><span class="chevron" data-icon="chevron"></span></button>
+      <label class="size-control"><input id="size" type="number" list="font-sizes" data-command="fontSize" min="1" max="200" step="any" aria-label="Font size in points" data-i18n-label="fontSizeLabel" title="Font size in points (1–200)" data-i18n-title="fontSizeTitle" placeholder="Size" data-i18n-placeholder="size" disabled><span>pt</span></label>
       <datalist id="font-sizes"></datalist>
     </div>
-    <div class="group" role="group" aria-label="Text styles">
-      <button data-command="bold" class="bold" aria-label="Bold" title="Bold" aria-pressed="false" disabled>B</button>
-      <button data-command="italic" class="italic" aria-label="Italic" title="Italic" aria-pressed="false" disabled>I</button>
-      <button data-command="underline" class="underline" aria-label="Underline" title="Underline" aria-pressed="false" disabled>U</button>
-      <button data-command="strikeThrough" class="strike" aria-label="Strikethrough" title="Strikethrough" aria-pressed="false" disabled>S</button>
+    <div class="group" role="group" aria-label="Text styles" data-i18n-label="textStyles">
+      <button data-command="bold" class="bold" aria-label="Bold" data-i18n-label="bold" title="Bold" data-i18n-title="bold" aria-pressed="false" disabled data-i18n="boldGlyph">B</button>
+      <button data-command="italic" class="italic" aria-label="Italic" data-i18n-label="italic" title="Italic" data-i18n-title="italic" aria-pressed="false" disabled data-i18n="italicGlyph">I</button>
+      <button data-command="underline" class="underline" aria-label="Underline" data-i18n-label="underline" title="Underline" data-i18n-title="underline" aria-pressed="false" disabled data-i18n="underlineGlyph">U</button>
+      <button data-command="strikeThrough" class="strike" aria-label="Strikethrough" data-i18n-label="strikethrough" title="Strikethrough" data-i18n-title="strikethrough" aria-pressed="false" disabled data-i18n="strikethroughGlyph">S</button>
     </div>
-    <div class="group" role="group" aria-label="Superscript and subscript">
-      <button data-command="superscript" aria-label="Superscript" title="Superscript" aria-pressed="false" disabled>x<sup>2</sup></button>
-      <button data-command="subscript" aria-label="Subscript" title="Subscript" aria-pressed="false" disabled>x<sub>2</sub></button>
+    <div class="group" role="group" aria-label="Superscript and subscript" data-i18n-label="scriptStyles">
+      <button data-command="superscript" aria-label="Superscript" data-i18n-label="superscript" title="Superscript" data-i18n-title="superscript" aria-pressed="false" disabled>x<sup>2</sup></button>
+      <button data-command="subscript" aria-label="Subscript" data-i18n-label="subscript" title="Subscript" data-i18n-title="subscript" aria-pressed="false" disabled>x<sub>2</sub></button>
     </div>
-    <div class="group" role="group" aria-label="Text colors">
-      <button id="text-color" class="color-tool" data-menu="text-color" aria-label="Text color" title="Text color" aria-haspopup="dialog" aria-expanded="false" disabled>A<span class="color-line" id="text-color-line"></span></button>
-      <button id="highlight" class="color-tool" data-menu="background-color" aria-label="Highlight and text background" title="Highlight and text background" aria-haspopup="dialog" aria-expanded="false" disabled><span data-icon="marker"></span><span class="color-line" id="highlight-line"></span></button>
+    <div class="group" role="group" aria-label="Text colors" data-i18n-label="textColors">
+      <button id="text-color" class="color-tool" data-menu="text-color" aria-label="Text color" data-i18n-label="textColor" title="Text color" data-i18n-title="textColor" aria-haspopup="dialog" aria-expanded="false" disabled>A<span class="color-line" id="text-color-line"></span></button>
+      <button id="highlight" class="color-tool" data-menu="background-color" aria-label="Highlight and text background" data-i18n-label="highlight" title="Highlight and text background" data-i18n-title="highlight" aria-haspopup="dialog" aria-expanded="false" disabled><span data-icon="marker"></span><span class="color-line" id="highlight-line"></span></button>
     </div>
-    <div class="group" role="group" aria-label="Alignment">
-      <button data-command="justifyLeft" data-icon="left" aria-label="Align left" title="Align left" aria-pressed="false" disabled></button>
-      <button data-command="justifyCenter" data-icon="center" aria-label="Align center" title="Align center" aria-pressed="false" disabled></button>
-      <button data-command="justifyRight" data-icon="right" aria-label="Align right" title="Align right" aria-pressed="false" disabled></button>
-      <button data-command="justifyFull" data-icon="justify" aria-label="Justify" title="Justify" aria-pressed="false" disabled></button>
+    <div class="group" role="group" aria-label="Alignment" data-i18n-label="alignment">
+      <button data-command="justifyLeft" data-icon="left" aria-label="Align left" data-i18n-label="alignLeft" title="Align left" data-i18n-title="alignLeft" aria-pressed="false" disabled></button>
+      <button data-command="justifyCenter" data-icon="center" aria-label="Align center" data-i18n-label="alignCenter" title="Align center" data-i18n-title="alignCenter" aria-pressed="false" disabled></button>
+      <button data-command="justifyRight" data-icon="right" aria-label="Align right" data-i18n-label="alignRight" title="Align right" data-i18n-title="alignRight" aria-pressed="false" disabled></button>
+      <button data-command="justifyFull" data-icon="justify" aria-label="Justify" data-i18n-label="justify" title="Justify" data-i18n-title="justify" aria-pressed="false" disabled></button>
     </div>
-    <div class="group" role="group" aria-label="Spacing">
-      <button id="line-spacing-toggle" data-menu="line-spacing" aria-label="Set line spacing" title="Set line spacing" aria-haspopup="dialog" aria-expanded="false" disabled><span data-icon="spacing"></span><span class="chevron" data-icon="chevron"></span></button>
-      <button data-command="paragraphSpacingIncrease" data-icon="space-increase" aria-label="Increase paragraph spacing" title="Increase paragraph spacing" disabled></button>
-      <button data-command="paragraphSpacingDecrease" data-icon="space-decrease" aria-label="Decrease paragraph spacing" title="Decrease paragraph spacing" disabled></button>
+    <div class="group" role="group" aria-label="Spacing" data-i18n-label="spacing">
+      <button id="line-spacing-toggle" data-menu="line-spacing" aria-label="Set line spacing" data-i18n-label="setLineSpacing" title="Set line spacing" data-i18n-title="setLineSpacing" aria-haspopup="dialog" aria-expanded="false" disabled><span data-icon="spacing"></span><span class="chevron" data-icon="chevron"></span></button>
+      <button data-command="paragraphSpacingIncrease" data-icon="space-increase" aria-label="Increase paragraph spacing" data-i18n-label="increaseParagraphSpacing" title="Increase paragraph spacing" data-i18n-title="increaseParagraphSpacing" disabled></button>
+      <button data-command="paragraphSpacingDecrease" data-icon="space-decrease" aria-label="Decrease paragraph spacing" data-i18n-label="decreaseParagraphSpacing" title="Decrease paragraph spacing" data-i18n-title="decreaseParagraphSpacing" disabled></button>
     </div>
-    <div class="group" role="group" aria-label="Lists and indentation">
-      <button data-command="insertUnorderedList" data-icon="bullets" aria-label="Bulleted list" title="Bulleted list" aria-pressed="false" disabled></button>
-      <button data-command="insertOrderedList" data-icon="numbers" aria-label="Numbered list" title="Numbered list" aria-pressed="false" disabled></button>
-      <button data-command="outdent" data-icon="outdent" aria-label="Decrease indent" title="Decrease indent" disabled></button>
-      <button data-command="indent" data-icon="indent" aria-label="Increase indent" title="Increase indent" disabled></button>
+    <div class="group" role="group" aria-label="Lists and indentation" data-i18n-label="listsIndentation">
+      <button data-command="insertUnorderedList" data-icon="bullets" aria-label="Bulleted list" data-i18n-label="bulletedList" title="Bulleted list" data-i18n-title="bulletedList" aria-pressed="false" disabled></button>
+      <button data-command="insertOrderedList" data-icon="numbers" aria-label="Numbered list" data-i18n-label="numberedList" title="Numbered list" data-i18n-title="numberedList" aria-pressed="false" disabled></button>
+      <button data-command="outdent" data-icon="outdent" aria-label="Decrease indent" data-i18n-label="decreaseIndent" title="Decrease indent" data-i18n-title="decreaseIndent" disabled></button>
+      <button data-command="indent" data-icon="indent" aria-label="Increase indent" data-i18n-label="increaseIndent" title="Increase indent" data-i18n-title="increaseIndent" disabled></button>
     </div>
-    <div class="group" role="group" aria-label="Insert">
-      <button data-menu="link" data-icon="link" aria-label="Insert or edit a link" title="Insert or edit a link" aria-haspopup="dialog" aria-expanded="false" disabled></button>
-      <button data-menu="emoji" data-icon="smile" aria-label="Insert emoji" title="Insert emoji" aria-haspopup="dialog" aria-expanded="false" disabled></button>
-      <button data-command="insertHorizontalRule" data-icon="rule" aria-label="Insert a divider" title="Insert a divider" disabled></button>
+    <div class="group" role="group" aria-label="Insert" data-i18n-label="insert">
+      <button data-menu="link" data-icon="link" aria-label="Insert or edit a link" data-i18n-label="insertLink" title="Insert or edit a link" data-i18n-title="insertLink" aria-haspopup="dialog" aria-expanded="false" disabled></button>
+      <button data-menu="emoji" data-icon="smile" aria-label="Insert emoji" data-i18n-label="insertEmoji" title="Insert emoji" data-i18n-title="insertEmoji" aria-haspopup="dialog" aria-expanded="false" disabled></button>
+      <button data-command="insertHorizontalRule" data-icon="rule" aria-label="Insert a divider" data-i18n-label="insertDivider" title="Insert a divider" data-i18n-title="insertDivider" disabled></button>
     </div>
-    <div class="group" role="group" aria-label="History and clear formatting">
-      <button data-command="undo" data-icon="undo" aria-label="Undo" title="Undo" disabled></button>
-      <button data-command="redo" data-icon="redo" aria-label="Redo" title="Redo" disabled></button>
-      <button data-command="removeFormat" data-icon="clear" aria-label="Clear inline formatting" title="Clear inline formatting" disabled></button>
+    <div class="group" role="group" aria-label="History and clear formatting" data-i18n-label="historyFormatting">
+      <button data-command="undo" data-icon="undo" aria-label="Undo" data-i18n-label="undo" title="Undo" data-i18n-title="undo" disabled></button>
+      <button data-command="redo" data-icon="redo" aria-label="Redo" data-i18n-label="redo" title="Redo" data-i18n-title="redo" disabled></button>
+      <button data-command="removeFormat" data-icon="clear" aria-label="Clear inline formatting" data-i18n-label="clearFormatting" title="Clear inline formatting" data-i18n-title="clearFormatting" disabled></button>
     </div>
-    <span id="mode" hidden>Plain text</span>
+    <span id="mode" hidden data-i18n="plainText">Plain text</span>
   </div>
 
   <div id="error" role="alert" hidden></div>
-  <button id="retry" class="label-button" hidden>Reconnect to the message</button>
-  <span id="status" class="sr-only" role="status">Connecting to the message…</span>
+  <button id="retry" class="label-button" hidden data-i18n="reconnect">Reconnect to the message</button>
+  <span id="status" class="sr-only" role="status" data-i18n="connecting">Connecting to the message…</span>
 </body>
 </html>

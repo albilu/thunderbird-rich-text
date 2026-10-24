@@ -1,5 +1,6 @@
 (() => {
   "use strict";
+  const { message } = RichText;
   const show = document.getElementById("show-toolbar");
   const hide = document.getElementById("hide-native");
   const status = document.getElementById("status");
@@ -12,7 +13,7 @@
     hide.disabled = !settings.showToolbar;
   }
   function fail(reason) {
-    error.textContent = `Could not save settings: ${reason.message}`;
+    error.textContent = message("settingsSaveError", reason.message);
     error.hidden = false;
   }
   async function save() {
@@ -22,7 +23,7 @@
     try {
       await browser.storage.local.set({ toolbarSettings });
       render(toolbarSettings);
-      status.textContent = "Settings saved.";
+      status.textContent = message("settingsSaved");
     } catch (reason) {
       fail(reason);
       show.disabled = false;
@@ -36,10 +37,10 @@
   });
   browser.storage.local.get("toolbarSettings").then(({ toolbarSettings }) => {
     render(toolbarSettings);
-    status.textContent = "Changes are saved automatically.";
+    status.textContent = message("settingsAutoSaved");
   }).catch(reason => {
-    error.textContent = `Could not load settings: ${reason.message}`;
+    error.textContent = message("settingsLoadError", reason.message);
     error.hidden = false;
-    status.textContent = "Reopen this page to try again.";
+    status.textContent = message("settingsRetry");
   });
 })();

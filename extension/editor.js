@@ -3,7 +3,7 @@
   "use strict";
   if (globalThis.__richTextEditorInstalled) return;
   globalThis.__richTextEditorInstalled = true;
-  const { CHANNEL, TOGGLES, FONTS, normalizeCommand, linkHtml, TYPOGRAPHY_COMMANDS } = RichText;
+  const { message: translate, CHANNEL, TOGGLES, FONTS, normalizeCommand, linkHtml, TYPOGRAPHY_COMMANDS } = RichText;
   let savedRange = null;
   let executing = false;
   let stateTimer;
@@ -65,7 +65,7 @@
 
   function execute(command, value) {
     ({ command, value } = normalizeCommand(command, value));
-    if (TYPOGRAPHY_COMMANDS.includes(command)) throw new Error("This formatting command requires the native typography adapter.");
+    if (TYPOGRAPHY_COMMANDS.includes(command)) throw new Error(translate("errorTypographyAdapter"));
     const selection = restoreSelection();
     const wasCss = query("queryCommandState", "styleWithCSS", false);
     executing = true;
@@ -92,7 +92,7 @@
       } else {
         applied = document.execCommand(command, false, value ?? null);
       }
-      if (!applied) throw new Error("This action is unavailable at the current cursor position. Click in the message and try again.");
+      if (!applied) throw new Error(translate("errorCursor"));
     } finally {
       document.execCommand("styleWithCSS", false, wasCss);
       executing = false;

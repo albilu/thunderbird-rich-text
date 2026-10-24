@@ -3,64 +3,65 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Rich Text formatting</title>
+  <title data-i18n="formatting">Rich Text formatting</title>
   <link rel="stylesheet" href="../theme.css">
   <script src="../theme.js" defer></script>
   <link rel="stylesheet" href="toolbar.css">
   <link rel="stylesheet" href="dropdown.css">
   <script src="../shared.js" defer></script>
+  <script src="../localize.js" defer></script>
   <script src="dropdown.js" defer></script>
 </head>
 <body>
-  <section id="font-dropdown" aria-label="Font family" hidden>
-    <div class="dropdown-caption"><label for="font-search">Font family</label><span id="font-count" role="status"></span></div>
-    <input id="font-search" type="text" role="combobox" aria-autocomplete="list" aria-haspopup="listbox" aria-controls="font-list" aria-expanded="true" placeholder="Search fonts…" maxlength="200" autocomplete="off" spellcheck="false" disabled>
-    <div id="font-list" role="listbox" aria-label="Font families"></div>
-    <p id="no-fonts" hidden>No matching fonts. Press Enter to use the typed family name.</p>
+  <section id="font-dropdown" aria-label="Font family" data-i18n-label="fontFamily" hidden>
+    <div class="dropdown-caption"><label for="font-search" data-i18n="fontFamily">Font family</label><span id="font-count" role="status"></span></div>
+    <input id="font-search" type="text" role="combobox" aria-autocomplete="list" aria-haspopup="listbox" aria-controls="font-list" aria-expanded="true" placeholder="Search fonts…" data-i18n-placeholder="searchFonts" maxlength="200" autocomplete="off" spellcheck="false" disabled>
+    <div id="font-list" role="listbox" aria-label="Font families" data-i18n-label="fontFamilies"></div>
+    <p id="no-fonts" hidden data-i18n="noFonts">No matching fonts. Press Enter to use the typed family name.</p>
   </section>
-  <section id="line-spacing-menu" aria-label="Line spacing" hidden>
-    <div class="dropdown-caption">Line spacing</div>
-    <div id="line-presets" role="group" aria-label="Line spacing presets">
-      <button data-line-spacing="1" aria-label="Single line spacing" title="Single (1)" aria-pressed="false" disabled><span class="line-preview single" aria-hidden="true"></span><span>1</span></button>
-      <button data-line-spacing="1.15" aria-label="1.15 lines" title="1.15 lines" aria-pressed="false" disabled><span class="line-preview one-fifteen" aria-hidden="true"></span><span>1.15</span></button>
-      <button data-line-spacing="1.5" aria-label="1.5 lines" title="1.5 lines" aria-pressed="false" disabled><span class="line-preview one-half" aria-hidden="true"></span><span>1.5</span></button>
-      <button data-line-spacing="2" aria-label="Double line spacing" title="Double (2)" aria-pressed="false" disabled><span class="line-preview double" aria-hidden="true"></span><span>2</span></button>
+  <section id="line-spacing-menu" aria-label="Line spacing" data-i18n-label="lineSpacing" hidden>
+    <div class="dropdown-caption" data-i18n="lineSpacing">Line spacing</div>
+    <div id="line-presets" role="group" aria-label="Line spacing presets" data-i18n-label="linePresets">
+      <button data-line-spacing="1" aria-label="Single line spacing" data-i18n-label="singleLineSpacing" title="Single (1)" data-i18n-title="singleTitle" aria-pressed="false" disabled><span class="line-preview single" aria-hidden="true"></span><span>1</span></button>
+      <button data-line-spacing="1.15" aria-label="1.15 lines" data-i18n-label="line115" title="1.15 lines" data-i18n-title="line115" aria-pressed="false" disabled><span class="line-preview one-fifteen" aria-hidden="true"></span><span data-i18n="line115Value">1.15</span></button>
+      <button data-line-spacing="1.5" aria-label="1.5 lines" data-i18n-label="line150" title="1.5 lines" data-i18n-title="line150" aria-pressed="false" disabled><span class="line-preview one-half" aria-hidden="true"></span><span data-i18n="line150Value">1.5</span></button>
+      <button data-line-spacing="2" aria-label="Double line spacing" data-i18n-label="doubleLineSpacing" title="Double (2)" data-i18n-title="doubleTitle" aria-pressed="false" disabled><span class="line-preview double" aria-hidden="true"></span><span>2</span></button>
     </div>
     <form id="line-spacing-form">
-      <h2>Custom value</h2>
-      <label>Line spacing<select id="line-spacing-mode" disabled><option value="1">Single</option><option value="1.15">1.15 lines</option><option value="1.5">1.5 lines</option><option value="2">Double</option><option value="proportional">Proportional</option></select></label>
-      <label>At<span class="percent-input"><input id="line-spacing" type="number" min="50" max="500" step="1" value="100" aria-label="Proportional line spacing in percent" required disabled><span>%</span></span></label>
-      <button type="submit" class="label-button primary" disabled>Apply</button>
+      <h2 data-i18n="customValue">Custom value</h2>
+      <label><span data-i18n="lineSpacing">Line spacing</span><select id="line-spacing-mode" disabled><option value="1" data-i18n="single">Single</option><option value="1.15" data-i18n="line115">1.15 lines</option><option value="1.5" data-i18n="line150">1.5 lines</option><option value="2" data-i18n="double">Double</option><option value="proportional" data-i18n="proportional">Proportional</option></select></label>
+      <label><span data-i18n="at">At</span><span class="percent-input"><input id="line-spacing" type="number" min="50" max="500" step="1" value="100" aria-label="Proportional line spacing in percent" data-i18n-label="proportionalPercent" required disabled><span>%</span></span></label>
+      <button type="submit" class="label-button primary" disabled data-i18n="apply">Apply</button>
     </form>
   </section>
-  <section id="style-menu" aria-label="Paragraph style" hidden>
-    <h2 class="dropdown-caption">Paragraph style</h2>
-    <div id="style-list" role="group" aria-label="Paragraph styles"></div>
+  <section id="style-menu" aria-label="Paragraph style" data-i18n-label="paragraphStyle" hidden>
+    <h2 class="dropdown-caption" data-i18n="paragraphStyle">Paragraph style</h2>
+    <div id="style-list" role="group" aria-label="Paragraph styles" data-i18n-label="paragraphStyles"></div>
   </section>
-    <section id="color-menu" aria-label="Color tools" hidden>
-      <h2 class="dropdown-caption" id="color-title">Text color</h2>
-      <div id="palette" role="group" aria-label="Preset colors"></div>
+    <section id="color-menu" aria-label="Color tools" data-i18n-label="colorTools" hidden>
+      <h2 class="dropdown-caption" id="color-title" data-i18n="textColor">Text color</h2>
+      <div id="palette" role="group" aria-label="Preset colors" data-i18n-label="presetColors"></div>
       <form id="color-form" class="color-form">
-        <label class="sr-only" for="color-picker">Custom color picker</label><input id="color-picker" type="color" value="#fef08a">
-        <label class="sr-only" for="color-hex">Hex color</label><input id="color-hex" type="text" value="#fef08a" pattern="#[a-fA-F0-9]{6}" maxlength="7" required spellcheck="false">
-        <button type="submit" class="label-button primary">Apply color</button>
-        <button type="button" id="clear-highlight" class="label-button">Clear highlight</button>
+        <label class="sr-only" for="color-picker" data-i18n="customColorPicker">Custom color picker</label><input id="color-picker" type="color" value="#fef08a">
+        <label class="sr-only" for="color-hex" data-i18n="hexColor">Hex color</label><input id="color-hex" type="text" value="#fef08a" pattern="#[a-fA-F0-9]{6}" maxlength="7" required spellcheck="false">
+        <button type="submit" class="label-button primary" data-i18n="applyColor">Apply color</button>
+        <button type="button" id="clear-highlight" class="label-button" data-i18n="clearHighlight">Clear highlight</button>
       </form>
     </section>
-    <section id="link-menu" aria-label="Link tools" hidden>
-      <h2 class="dropdown-caption">Insert or edit a link</h2>
+    <section id="link-menu" aria-label="Link tools" data-i18n-label="linkTools" hidden>
+      <h2 class="dropdown-caption" data-i18n="insertLink">Insert or edit a link</h2>
       <form id="link-form">
-        <label>Address<input id="link-url" type="text" inputmode="url" placeholder="https://example.com" spellcheck="false" autocomplete="off" maxlength="2048" required></label>
-        <label>Display text (optional)<input id="link-text" type="text" placeholder="Use selected text or the address" maxlength="2000"></label>
-        <button type="submit" class="label-button primary">Apply link</button>
-        <button type="button" class="label-button" data-command="unlink">Remove link</button>
+        <label><span data-i18n="address">Address</span><input id="link-url" type="text" inputmode="url" placeholder="https://example.com" spellcheck="false" autocomplete="off" maxlength="2048" required></label>
+        <label><span data-i18n="linkText">Display text (optional)</span><input id="link-text" type="text" placeholder="Use selected text or the address" data-i18n-placeholder="linkTextPlaceholder" maxlength="2000"></label>
+        <button type="submit" class="label-button primary" data-i18n="applyLink">Apply link</button>
+        <button type="button" class="label-button" data-command="unlink" data-i18n="removeLink">Remove link</button>
       </form>
     </section>
-    <section id="emoji-menu" aria-label="Emoji tools" hidden>
-      <h2 class="dropdown-caption">Insert emoji</h2>
-      <label class="sr-only" for="emoji-search">Search emoji</label><input id="emoji-search" type="search" placeholder="Search emoji…" autocomplete="off">
-      <div id="emoji-grid" role="group" aria-label="Emoji"></div>
-      <p id="no-emoji" hidden>No matching emoji. Try “happy”, “thanks”, or “work”.</p>
+    <section id="emoji-menu" aria-label="Emoji tools" data-i18n-label="emojiTools" hidden>
+      <h2 class="dropdown-caption" data-i18n="insertEmoji">Insert emoji</h2>
+      <label class="sr-only" for="emoji-search" data-i18n="searchEmoji">Search emoji</label><input id="emoji-search" type="search" placeholder="Search emoji…" data-i18n-placeholder="searchEmojiPlaceholder" autocomplete="off">
+      <div id="emoji-grid" role="group" aria-label="Emoji" data-i18n-label="emoji"></div>
+      <p id="no-emoji" hidden data-i18n="noEmoji">No matching emoji. Try “happy”, “thanks”, or “work”.</p>
     </section>
   <div id="error" role="alert" hidden></div>
 </body>

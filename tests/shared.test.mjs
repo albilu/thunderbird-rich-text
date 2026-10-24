@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { translator } from './helpers/i18n.mjs';
 import '../extension/shared.js';
+
+globalThis.browser = { i18n: { getMessage: translator() } };
 
 const { normalizeUrl, normalizeColor, normalizeCommand, linkHtml, isPlainTextCommand, FONTS, SIZES, BLOCKS, EMOJI } = globalThis.RichText;
 

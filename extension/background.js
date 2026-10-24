@@ -2,7 +2,7 @@
 (() => {
   "use strict";
   const api = browser;
-  const { CHANNEL, normalizeCommand, isPlainTextCommand, normalizeToolbarSettings, TYPOGRAPHY_COMMANDS } = RichText;
+  const { message: translate, CHANNEL, normalizeCommand, isPlainTextCommand, normalizeToolbarSettings, TYPOGRAPHY_COMMANDS } = RichText;
   const injections = new Map();
   const files = ["shared.js", "editor.js"];
 
@@ -41,29 +41,29 @@
   async function handle(message) {
     await ready;
     const tabId = message.tabId;
-    if (!Number.isInteger(tabId)) throw new Error("This toolbar has no message compose window.");
+    if (!Number.isInteger(tabId)) throw new Error(translate("errorNoCompose"));
     const tab = await api.tabs.get(tabId);
-    if (tab.type !== "messageCompose") throw new Error("This message compose window is no longer available.");
+    if (tab.type !== "messageCompose") throw new Error(translate("errorComposeClosed"));
     const { isPlainText } = await api.compose.getComposeDetails(tabId);
     await ensureEditor(tabId);
     let request = { channel: CHANNEL, action: "state" };
     if (message.action === "command") {
       const normalized = normalizeCommand(message.command, message.value);
       if (isPlainText && !isPlainTextCommand(normalized.command)) {
-        throw new Error("Formatting needs an HTML message. Hold Shift while clicking Write to switch compose format.");
+        throw new Error(translate("errorHtmlRequired"));
       }
       if (TYPOGRAPHY_COMMANDS.includes(normalized.command)) {
         // Restore the saved native selection before handing it to the editor API.
         const prepared = await api.tabs.sendMessage(tabId, { channel: CHANNEL, action: "prepareTypography" });
-        if (!prepared?.ok) throw new Error(prepared?.error || "The editor selection is unavailable.");
+        if (!prepared?.ok) throw new Error(prepared?.error || translate("errorSelection"));
         try { await api.composeToolbar.applyTypography(tabId, normalized.command, normalized.value); }
         finally { await api.tabs.sendMessage(tabId, { channel: CHANNEL, action: "finishTypography" }); }
       } else request = { channel: CHANNEL, action: "command", ...normalized };
     } else if (!["connect", "state"].includes(message.action)) {
-      throw new Error("Unknown Rich Text request.");
+      throw new Error(translate("errorRequest"));
     }
     const response = await api.tabs.sendMessage(tabId, request);
-    if (!response?.ok) throw new Error(response?.error || "The message editor is not ready. Try reconnecting the toolbar.");
+    if (!response?.ok) throw new Error(response?.error || translate("errorToolbarReconnect"));
     if (!isPlainText) response.state.values = { ...response.state.values, ...await api.composeToolbar.getTypography(tabId) };
     return { ...response, tabId, isPlainText };
   }
@@ -85,7 +85,7 @@
     const boundValue = new URL(sender.url).searchParams.get("tabId");
     const boundTab = Number(boundValue);
     if (!boundValue || !Number.isInteger(boundTab) || message.tabId !== boundTab) {
-      return Promise.resolve({ ok: false, error: "This toolbar belongs to a different compose window." });
+      return Promise.resolve({ ok: false, error: translate("errorOtherCompose") });
     }
     return handle(message).catch(error => ({ ok: false, error: error.message }));
   });

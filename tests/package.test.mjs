@@ -22,6 +22,8 @@ test('XPI builds reproducibly with a root manifest and only extension assets', a
     assert.ok(archive.files.includes('editor.js'));
     assert.ok(archive.files.includes('toolbar/toolbar.html'));
     assert.ok(archive.files.includes('options/options.html'));
+    assert.ok(archive.files.includes('localize.js'));
+    for (const locale of ['en', 'fr']) assert.ok(archive.files.includes(`_locales/${locale}/messages.json`));
     assert.ok(archive.files.every(file => !file.startsWith('popup/')));
     assert.ok(archive.files.every(file => !/^(tests|scripts|node_modules|\.git)\//.test(file)));
   } finally { await rm(temporary, { recursive: true, force: true }); }

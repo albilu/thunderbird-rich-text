@@ -155,6 +155,26 @@ the toolbar. Native CSS variables have system-color fallbacks for older versions
 The logo retains its original green. Message color palettes are separate from UI
 theming. Network resources and runtime dependencies are absent.
 
+## Localization
+
+Thunderbird’s WebExtension i18n system chooses `_locales/fr/messages.json` for
+French interface locales (including regional variants), with `_locales/en/messages.json`
+as the default fallback. Manifest metadata uses `__MSG_…__` references. Shared
+validation and dynamic controls call `browser.i18n.getMessage` through the small
+`RichText.message` helper; the privileged adapter uses the extension’s native
+localizer. Expected adapter failures cross the API boundary as `ExtensionError`,
+so their translated messages reach the toolbar instead of a generic error.
+
+`localize.js` runs after `shared.js` and before each page controller. Declarative
+`data-i18n` markers translate text, titles, accessible names, and placeholders;
+translations are assigned with `textContent` or an allowlisted attribute, never
+interpreted as HTML. The page language follows the selected catalog. Fonts, CSS
+values, command names, and stored preferences remain language independent.
+French line-spacing labels and validation bounds use decimal commas; native
+number inputs still expose canonical numeric values to the formatting bridge.
+Emoji search includes translated keywords and existing English aliases, ignoring
+case and accents and accepting both `œ` and `oe`.
+
 ## API references
 
 - [Compose scripts and injection into existing windows](https://webextension-api.thunderbird.net/en/mv2/composeScripts.html)

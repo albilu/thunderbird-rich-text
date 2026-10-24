@@ -16,7 +16,14 @@ import tempfile
 import time
 
 ROOT = Path(__file__).resolve().parents[1]
+TEST_LOCALE = os.environ.get("RICH_TEXT_TEST_LOCALE", "en-US")
+if TEST_LOCALE not in {"en-US", "fr", "fr-CA", "de"}:
+    raise SystemExit("RICH_TEXT_TEST_LOCALE must be en-US, fr, fr-CA, or de.")
+LANGUAGE = "fr" if TEST_LOCALE.startswith("fr") else "en"
+MESSAGES = json.loads((ROOT / "extension/_locales" / LANGUAGE / "messages.json").read_text())
 RESULTS = ROOT / "test-results"
+if TEST_LOCALE != "en-US":
+    RESULTS /= TEST_LOCALE
 ADDON_ID = "rich-text@thunderbird-rich-text.local"
 
 
@@ -119,7 +126,7 @@ def toolbar_ready(client, tab):
 
 def basic_tests(client):
     version = client.script("return Services.appinfo.version;")
-    print(f"Testing Thunderbird {version}", flush=True)
+    print(f"Testing Thunderbird {version}, requested locale {TEST_LOCALE}", flush=True)
     installed = client.async_script("""
       const { AddonManager } = ChromeUtils.importESModule('resource://gre/modules/AddonManager.sys.mjs');
       const file = Cc['@mozilla.org/file/local;1'].createInstance(Ci.nsIFile);
@@ -150,6 +157,29 @@ def basic_tests(client):
     """, tab, ADDON_ID)
     client.wait("return Boolean(testCompose.GetCurrentEditor()?.document.getElementById('target'));")
     toolbar_ready(client, tab)
+    localized = client.toolbar_script(tab, """
+      const api = window.wrappedJSObject.browser;
+      return {language: document.documentElement.lang, title: document.title,
+        bold: document.querySelector('[data-command=bold]').title,
+        glyph: document.querySelector('[data-command=bold]').textContent,
+        description: api.runtime.getManifest().description};
+    """)
+    assert localized == {"language": LANGUAGE, "title": MESSAGES["toolbarTitle"]["message"],
+                         "bold": MESSAGES["bold"]["message"], "glyph": MESSAGES["boldGlyph"]["message"],
+                         "description": MESSAGES["extensionDescription"]["message"]}, localized
+    assert client.script("return testCompose.document.getElementById('rich-text-compose-toolbar').getAttribute('aria-label');") == MESSAGES["nativeToolbarLabel"]["message"]
+    native_error = client.toolbar_script(tab, """
+      return window.wrappedJSObject.browser.composeToolbar.applyTypography(arguments[0], 'fontSize', 0)
+        .then(() => '', error => error.message);
+    """, tab['id'])
+    assert native_error == MESSAGES["errorTypographyValue"]["message"], native_error
+    script_error = client.extension_script("background", """
+      return window.wrappedJSObject.browser.tabs.sendMessage(arguments[0], {
+        channel: 'thunderbird-rich-text/v1', action: 'command', command: 'fontSize', value: 12
+      });
+    """, tab['id'])
+    assert not script_error['ok'] and script_error['error'] == MESSAGES["errorTypographyAdapter"]["message"], script_error
+    print("PASS: localized manifest, toolbar, accessibility labels, and native/compose-script errors", flush=True)
     assert client.script("return testCompose.document.getElementById('FormatToolbar').nextElementSibling.id;") == "rich-text-compose-toolbar"
     assert client.script("return testCompose.document.getElementById('rich-text-toolbar-browser').getBoundingClientRect().height;") > 30
     client.wait("return testCompose.getComputedStyle(testCompose.document.getElementById('FormatToolbar')).display === 'none';")
@@ -313,6 +343,24 @@ def open_dropdown(client, tab, kind):
     anchor = client.toolbar_script(tab, "const rect=document.querySelector('[data-menu=\"'+arguments[0]+'\"]').getBoundingClientRect();return {left:rect.left,right:rect.right};", kind)
     placement = client.script("const panel=testCompose.document.getElementById('rich-text-dropdown-panel').getBoundingClientRect(), host=testCompose.document.getElementById('rich-text-toolbar-browser').getBoundingClientRect();return {left:panel.left-host.left,right:panel.right-host.left};")
     assert placement['right'] >= anchor['left'] and placement['left'] <= anchor['right'], {'anchor': anchor, 'popup': placement}
+    localized = client.dropdown_script(tab, kind, """
+      return {language: document.documentElement.lang, title: document.title,
+        fits: document.documentElement.scrollWidth <= innerWidth,
+        heading: document.querySelector('[data-block=h2]')?.textContent.replace('✓', '').trim(),
+        line: document.querySelector('[data-line-spacing="1.15"]')?.textContent.trim(),
+        swatch: document.querySelector('#palette button')?.title};
+    """)
+    title_key = {'font': 'fontFamily', 'style': 'paragraphStyle', 'line-spacing': 'lineSpacing',
+                 'text-color': 'textColor', 'background-color': 'highlightTitle', 'link': 'insertLink', 'emoji': 'insertEmoji'}[kind]
+    assert localized['language'] == LANGUAGE and localized['title'] == MESSAGES[title_key]['message'], localized
+    assert localized['fits'], localized
+    if kind == 'style':
+        assert localized['heading'] == MESSAGES['blockHeading2']['message'], localized
+    if kind == 'line-spacing':
+        assert localized['line'] == MESSAGES['line115Value']['message'], localized
+    if kind in ['text-color', 'background-color']:
+        key, hex_value = ('colorInk', '#1f2937') if kind == 'text-color' else ('colorLemon', '#fef08a')
+        assert localized['swatch'] == f"{MESSAGES[key]['message']} ({hex_value})", localized
     return before
 
 
@@ -586,7 +634,14 @@ def toolbar_tests(client):
     open_dropdown(client, tab, 'emoji')
     if shutil.which('import'):
         subprocess.run(['import', '-window', 'root', str(RESULTS / 'emoji-popup.png')], env=client.test_env, check=True)
-    dropdown_action(client, tab, 'emoji', "document.querySelector('#emoji-grid button[title=\"party celebration congratulations\"]').click();")
+    query = 'fete' if LANGUAGE == 'fr' else 'party'
+    results = client.dropdown_script(tab, 'emoji', """
+      const input = document.getElementById('emoji-search');
+      input.value = arguments[0]; input.dispatchEvent(new Event('input', {bubbles: true}));
+      return [...document.querySelectorAll('#emoji-grid button')].map(button => ({emoji: button.textContent, title: button.title}));
+    """, query)
+    assert results == [{'emoji': '🎉', 'title': MESSAGES['emojiParty']['message']}], results
+    dropdown_action(client, tab, 'emoji', "document.querySelector('#emoji-grid button').click();")
     assert "colorful🎉" in editor_snapshot(client)["text"]
     assert client.script("return testCompose.GetCurrentEditor().document.querySelector('[id^=rich-text]') === null;")
     assert client.script("""
@@ -652,6 +707,7 @@ def toolbar_tests(client):
       });
     """)
     assert settings == {"show": True, "hide": True}, settings
+    assert client.page_script("options/options.html", "return [document.documentElement.lang, document.title, document.getElementById('toolbar-heading').textContent];") == [LANGUAGE, MESSAGES['settingsTitle']['message'], MESSAGES['composeToolbar']['message']]
     client.page_script("options/options.html", "document.getElementById('hide-native').click();")
     client.wait("return testCompose.getComputedStyle(testCompose.document.getElementById('FormatToolbar')).display !== 'none';")
     assert client.script("""
@@ -751,7 +807,7 @@ def run_tests(client):
     assert snapshot["links"] == [{"url": "https://example.com/?a=1&b=2", "text": "colorful"}], snapshot
     assert "font-weight: bold" in snapshot["html"], snapshot
     before = snapshot["html"]
-    send_command(client, tab, "link", {"url": "javascript:alert(1)"}, expect_ok=False)
+    assert send_command(client, tab, "link", {"url": "javascript:alert(1)"}, expect_ok=False)['error'] == MESSAGES['errorUrlScheme']['message']
     assert editor_snapshot(client)["html"] == before
     send_command(client, tab, "unlink")
     assert not editor_snapshot(client)["links"]
@@ -792,7 +848,7 @@ def run_tests(client):
     dropdown_action(client, plain, 'emoji', """
       const search = document.getElementById('emoji-search');
       search.value = 'celebration'; search.dispatchEvent(new Event('input', {bubbles: true}));
-      document.querySelector('#emoji-grid button').click();
+      [...document.querySelectorAll('#emoji-grid button')].find(button => button.textContent === '🎉').click();
     """)
     assert "🎉" in editor_snapshot(client)["text"], editor_snapshot(client)
     preferences = client.toolbar_script(plain, "return window.wrappedJSObject.browser.storage.local.get(null);")
@@ -805,6 +861,7 @@ def run_tests(client):
     (RESULTS / "native-result.json").write_text(json.dumps({
         "thunderbird": client.script("return Services.appinfo.version;"),
         "platform": "Linux", "passed": True, "artifact": client.addon_path.name,
+        "requestedLocale": TEST_LOCALE, "extensionLanguage": LANGUAGE,
     }, indent=2) + "\n")
 
 
@@ -812,7 +869,7 @@ def main():
     thunderbird = shutil.which(os.environ.get("THUNDERBIRD_BINARY", "thunderbird"))
     if not thunderbird or not all(shutil.which(binary) for binary in ["Xvfb", "xfwm4"]):
         raise SystemExit("Install Thunderbird, Xvfb, and xfwm4 to run native integration tests.")
-    RESULTS.mkdir(exist_ok=True)
+    RESULTS.mkdir(parents=True, exist_ok=True)
     subprocess.run([sys.executable, str(ROOT / "scripts/package.py")], check=True)
     version = json.loads((ROOT / "extension/manifest.json").read_text())["version"]
     addon_path = ROOT / "dist" / f"thunderbird-rich-text-{version}.xpi"
@@ -866,6 +923,15 @@ def main():
                     raise RuntimeError("Thunderbird did not start Marionette within 40 seconds")
                 client.test_env = env
                 client.addon_path = addon_path
+                # Exercise the real WebExtension locale resolver without downloading
+                # language packs or depending on the installed Thunderbird UI locale.
+                # This changes only the disposable test process; no i18n APIs are mocked.
+                locales = client.script("""
+                  Services.locale.availableLocales = [...new Set([...Services.locale.availableLocales, arguments[0]])];
+                  Services.locale.requestedLocales = [arguments[0]];
+                  return Services.locale.appLocalesAsBCP47;
+                """, TEST_LOCALE)
+                assert locales[0] == TEST_LOCALE, locales
                 run_tests(client)
             except Exception:
                 if client:

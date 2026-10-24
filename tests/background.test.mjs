@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
+import { translator } from './helpers/i18n.mjs';
 
 const shared = await readFile(new URL('../extension/shared.js', import.meta.url), 'utf8');
 const background = await readFile(new URL('../extension/background.js', import.meta.url), 'utf8');
@@ -17,6 +18,7 @@ async function setup({ plain = false, installed = true, active = 7 } = {}) {
   const liveTabs = new Map([[7, { id: 7, type: 'messageCompose' }], [9, { id: 9, type: 'messageCompose' }], [1, { id: 1, type: 'mail' }]]);
   let listener;
   const browser = {
+    i18n: { getMessage: translator() },
     runtime: { id: 'test-addon', getURL: path => `moz-extension://test/${path}`, onMessage: { addListener(fn) { listener = fn; } }, async sendMessage(message) { broadcast.push(message); } },
     storage: { local: { async get() { return { toolbarSettings: settings }; } }, onChanged: { addListener(fn) { storageListener = fn; } } },
     composeToolbar: {

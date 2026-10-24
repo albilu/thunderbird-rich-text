@@ -1,0 +1,774 @@
+{
+  "localeCode": {
+    "message": "fr",
+    "description": "BCP 47 language code for this translation; used for page language and number formatting."
+  },
+  "extensionName": {
+    "message": "Thunderbird Rich Text"
+  },
+  "extensionDescription": {
+    "message": "Mettez en forme vos e-mails dans l’éditeur de Thunderbird : polices, couleurs, surlignage, listes, liens et émojis."
+  },
+  "toolbarTitle": {
+    "message": "Barre d’outils Rich Text"
+  },
+  "formatting": {
+    "message": "Mise en forme Rich Text"
+  },
+  "nativeToolbarLabel": {
+    "message": "Barre de mise en forme Rich Text"
+  },
+  "typography": {
+    "message": "Typographie"
+  },
+  "paragraphStyle": {
+    "message": "Style de paragraphe"
+  },
+  "paragraphStyles": {
+    "message": "Styles de paragraphe"
+  },
+  "style": {
+    "message": "Style"
+  },
+  "fontFamily": {
+    "message": "Police"
+  },
+  "fontFamilies": {
+    "message": "Polices"
+  },
+  "chooseFont": {
+    "message": "Rechercher ou choisir une police"
+  },
+  "fontSizeLabel": {
+    "message": "Taille de police en points"
+  },
+  "fontSizeTitle": {
+    "message": "Taille de police en points (1–200)"
+  },
+  "size": {
+    "message": "Taille"
+  },
+  "textStyles": {
+    "message": "Styles de texte"
+  },
+  "bold": {
+    "message": "Gras"
+  },
+  "italic": {
+    "message": "Italique"
+  },
+  "underline": {
+    "message": "Souligné"
+  },
+  "strikethrough": {
+    "message": "Barré"
+  },
+  "boldGlyph": {
+    "message": "G"
+  },
+  "italicGlyph": {
+    "message": "I"
+  },
+  "underlineGlyph": {
+    "message": "S"
+  },
+  "strikethroughGlyph": {
+    "message": "B"
+  },
+  "scriptStyles": {
+    "message": "Exposant et indice"
+  },
+  "superscript": {
+    "message": "Exposant"
+  },
+  "subscript": {
+    "message": "Indice"
+  },
+  "textColors": {
+    "message": "Couleurs du texte"
+  },
+  "textColor": {
+    "message": "Couleur du texte"
+  },
+  "highlight": {
+    "message": "Surlignage et arrière-plan du texte"
+  },
+  "highlightTitle": {
+    "message": "Surlignage / arrière-plan du texte"
+  },
+  "alignment": {
+    "message": "Alignement"
+  },
+  "alignLeft": {
+    "message": "Aligner à gauche"
+  },
+  "alignCenter": {
+    "message": "Centrer"
+  },
+  "alignRight": {
+    "message": "Aligner à droite"
+  },
+  "justify": {
+    "message": "Justifier"
+  },
+  "spacing": {
+    "message": "Espacement"
+  },
+  "setLineSpacing": {
+    "message": "Définir l’interligne"
+  },
+  "increaseParagraphSpacing": {
+    "message": "Augmenter l’espacement entre les paragraphes"
+  },
+  "decreaseParagraphSpacing": {
+    "message": "Réduire l’espacement entre les paragraphes"
+  },
+  "listsIndentation": {
+    "message": "Listes et retraits"
+  },
+  "bulletedList": {
+    "message": "Liste à puces"
+  },
+  "numberedList": {
+    "message": "Liste numérotée"
+  },
+  "decreaseIndent": {
+    "message": "Réduire le retrait"
+  },
+  "increaseIndent": {
+    "message": "Augmenter le retrait"
+  },
+  "insert": {
+    "message": "Insertion"
+  },
+  "insertLink": {
+    "message": "Insérer ou modifier un lien"
+  },
+  "insertEmoji": {
+    "message": "Insérer un émoji"
+  },
+  "insertDivider": {
+    "message": "Insérer une ligne de séparation"
+  },
+  "historyFormatting": {
+    "message": "Historique et suppression de la mise en forme"
+  },
+  "undo": {
+    "message": "Annuler"
+  },
+  "redo": {
+    "message": "Rétablir"
+  },
+  "clearFormatting": {
+    "message": "Effacer la mise en forme du texte"
+  },
+  "plainText": {
+    "message": "Texte brut"
+  },
+  "reconnect": {
+    "message": "Se reconnecter au message"
+  },
+  "connecting": {
+    "message": "Connexion au message…"
+  },
+  "searchFonts": {
+    "message": "Rechercher une police…"
+  },
+  "noFonts": {
+    "message": "Aucune police correspondante. Appuyez sur Entrée pour utiliser le nom saisi."
+  },
+  "lineSpacing": {
+    "message": "Interligne"
+  },
+  "linePresets": {
+    "message": "Interlignes prédéfinis"
+  },
+  "singleLineSpacing": {
+    "message": "Interligne simple"
+  },
+  "singleTitle": {
+    "message": "Simple (1)"
+  },
+  "line115": {
+    "message": "1,15 ligne"
+  },
+  "line150": {
+    "message": "1,5 ligne"
+  },
+  "line115Value": {
+    "message": "1,15"
+  },
+  "line150Value": {
+    "message": "1,5"
+  },
+  "doubleLineSpacing": {
+    "message": "Interligne double"
+  },
+  "doubleTitle": {
+    "message": "Double (2)"
+  },
+  "customValue": {
+    "message": "Valeur personnalisée"
+  },
+  "single": {
+    "message": "Simple"
+  },
+  "double": {
+    "message": "Double"
+  },
+  "proportional": {
+    "message": "Proportionnel"
+  },
+  "at": {
+    "message": "À"
+  },
+  "proportionalPercent": {
+    "message": "Interligne proportionnel en pourcentage"
+  },
+  "apply": {
+    "message": "Appliquer"
+  },
+  "colorTools": {
+    "message": "Outils de couleur"
+  },
+  "presetColors": {
+    "message": "Couleurs prédéfinies"
+  },
+  "customColorPicker": {
+    "message": "Choisir une couleur personnalisée"
+  },
+  "hexColor": {
+    "message": "Couleur hexadécimale"
+  },
+  "applyColor": {
+    "message": "Appliquer la couleur"
+  },
+  "clearHighlight": {
+    "message": "Supprimer le surlignage"
+  },
+  "linkTools": {
+    "message": "Outils de lien"
+  },
+  "address": {
+    "message": "Adresse"
+  },
+  "linkText": {
+    "message": "Texte à afficher (facultatif)"
+  },
+  "linkTextPlaceholder": {
+    "message": "Utiliser le texte sélectionné ou l’adresse"
+  },
+  "applyLink": {
+    "message": "Appliquer le lien"
+  },
+  "removeLink": {
+    "message": "Supprimer le lien"
+  },
+  "emojiTools": {
+    "message": "Outils d’émojis"
+  },
+  "searchEmoji": {
+    "message": "Rechercher un émoji"
+  },
+  "searchEmojiPlaceholder": {
+    "message": "Rechercher un émoji…"
+  },
+  "emoji": {
+    "message": "Émojis"
+  },
+  "noEmoji": {
+    "message": "Aucun émoji correspondant. Essayez « sourire », « merci » ou « travail »."
+  },
+  "settingsTitle": {
+    "message": "Paramètres de Rich Text"
+  },
+  "settingsSubtitle": {
+    "message": "Votre fenêtre de rédaction, à votre façon."
+  },
+  "composeToolbar": {
+    "message": "Barre d’outils de rédaction"
+  },
+  "showToolbar": {
+    "message": "Afficher la barre d’outils Rich Text"
+  },
+  "showToolbarHelp": {
+    "message": "Gardez les outils de mise en forme juste au-dessus du message, sous la barre de mise en forme de Thunderbird."
+  },
+  "hideNativeToolbar": {
+    "message": "Masquer la barre de mise en forme de Thunderbird"
+  },
+  "hideNativeToolbarHelp": {
+    "message": "Activé par défaut. S’applique uniquement lorsque la barre d’outils Rich Text est affichée."
+  },
+  "settingsHelp": {
+    "message": "Les modifications s’appliquent à toutes les fenêtres de rédaction ouvertes et sont enregistrées automatiquement. Masquer Rich Text rétablit la barre de mise en forme de Thunderbird."
+  },
+  "loadingSettings": {
+    "message": "Chargement des paramètres…"
+  },
+  "settingsSaved": {
+    "message": "Paramètres enregistrés."
+  },
+  "settingsAutoSaved": {
+    "message": "Les modifications sont enregistrées automatiquement."
+  },
+  "settingsRetry": {
+    "message": "Rouvrez cette page pour réessayer."
+  },
+  "settingsSaveError": {
+    "message": "Impossible d’enregistrer les paramètres : $ERROR$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "settingsLoadError": {
+    "message": "Impossible de charger les paramètres : $ERROR$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "fontFamilyValue": {
+    "message": "Police : $FONT$",
+    "placeholders": {
+      "font": {
+        "content": "$1"
+      }
+    }
+  },
+  "paragraphStyleValue": {
+    "message": "Style de paragraphe : $STYLE$",
+    "placeholders": {
+      "style": {
+        "content": "$1"
+      }
+    }
+  },
+  "applied": {
+    "message": "Appliqué au message."
+  },
+  "toolbarReady": {
+    "message": "La barre d’outils Rich Text est prête."
+  },
+  "fontCountOne": {
+    "message": "$COUNT$ police",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "fontCountOther": {
+    "message": "$COUNT$ polices",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "enterFont": {
+    "message": "Saisir un nom de police…"
+  },
+  "colorValue": {
+    "message": "$COLOR$ ($HEX$)",
+    "placeholders": {
+      "color": {
+        "content": "$1"
+      },
+      "hex": {
+        "content": "$2"
+      }
+    }
+  },
+  "insertEmojiLabel": {
+    "message": "Insérer : $EMOJI$",
+    "placeholders": {
+      "emoji": {
+        "content": "$1"
+      }
+    }
+  },
+  "blockParagraph": {
+    "message": "Paragraphe"
+  },
+  "blockHeading1": {
+    "message": "Titre 1"
+  },
+  "blockHeading2": {
+    "message": "Titre 2"
+  },
+  "blockHeading3": {
+    "message": "Titre 3"
+  },
+  "blockQuotation": {
+    "message": "Citation"
+  },
+  "blockPreformatted": {
+    "message": "Préformaté"
+  },
+  "colorInk": {
+    "message": "Encre"
+  },
+  "colorSlate": {
+    "message": "Ardoise"
+  },
+  "colorWhite": {
+    "message": "Blanc"
+  },
+  "colorRed": {
+    "message": "Rouge"
+  },
+  "colorOrange": {
+    "message": "Orange"
+  },
+  "colorGold": {
+    "message": "Or"
+  },
+  "colorGreen": {
+    "message": "Vert"
+  },
+  "colorTeal": {
+    "message": "Bleu-vert"
+  },
+  "colorBlue": {
+    "message": "Bleu"
+  },
+  "colorViolet": {
+    "message": "Violet"
+  },
+  "colorPink": {
+    "message": "Rose vif"
+  },
+  "colorBrown": {
+    "message": "Marron"
+  },
+  "colorLemon": {
+    "message": "Citron"
+  },
+  "colorPeach": {
+    "message": "Pêche"
+  },
+  "colorRose": {
+    "message": "Rose"
+  },
+  "colorBlush": {
+    "message": "Rose pâle"
+  },
+  "colorLavender": {
+    "message": "Lavande"
+  },
+  "colorPeriwinkle": {
+    "message": "Pervenche"
+  },
+  "colorSky": {
+    "message": "Bleu ciel"
+  },
+  "colorAqua": {
+    "message": "Turquoise"
+  },
+  "colorMint": {
+    "message": "Menthe"
+  },
+  "colorLime": {
+    "message": "Vert clair"
+  },
+  "colorMist": {
+    "message": "Brume"
+  },
+  "emojiGrinning": {
+    "message": "grand sourire heureux",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiSmiling": {
+    "message": "sourire heureux merci",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiLaughing": {
+    "message": "rire larmes joie",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiFriendly": {
+    "message": "sourire amical",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiWink": {
+    "message": "clin d’œil",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiHeartEyes": {
+    "message": "yeux en cœur amour",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiThinking": {
+    "message": "réflexion question",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiSunglasses": {
+    "message": "cool lunettes de soleil",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiRaisedHands": {
+    "message": "célébration mains levées",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiClap": {
+    "message": "applaudir applaudissements bravo",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiThumbsUp": {
+    "message": "pouce levé oui bien",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiThumbsDown": {
+    "message": "pouce baissé non",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiWave": {
+    "message": "salut bonjour au revoir",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiThanks": {
+    "message": "merci s’il vous plaît mains jointes",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiHandshake": {
+    "message": "poignée de main accord",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiMuscle": {
+    "message": "force muscle",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiRedHeart": {
+    "message": "cœur rouge amour",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiGreenHeart": {
+    "message": "cœur vert",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiBlueHeart": {
+    "message": "cœur bleu",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiSparkles": {
+    "message": "étincelles",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiParty": {
+    "message": "fête célébration félicitations",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiConfetti": {
+    "message": "confettis célébration",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiBirthday": {
+    "message": "anniversaire gâteau",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiGift": {
+    "message": "cadeau",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiCheck": {
+    "message": "coche terminé oui",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiCross": {
+    "message": "croix non annuler",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiWarning": {
+    "message": "avertissement attention",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiIdea": {
+    "message": "idée ampoule",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiPin": {
+    "message": "épingle important",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiCalendar": {
+    "message": "calendrier date réunion",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiNote": {
+    "message": "mémo note rédaction",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiAttachment": {
+    "message": "trombone pièce jointe",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiMail": {
+    "message": "e-mail courrier enveloppe",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiChat": {
+    "message": "discussion conversation message",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiLink": {
+    "message": "lien",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiSearch": {
+    "message": "recherche loupe",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiRocket": {
+    "message": "fusée lancement",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiStar": {
+    "message": "étoile favori",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiFire": {
+    "message": "feu super",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiTarget": {
+    "message": "cible objectif",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiCoffee": {
+    "message": "café thé pause",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiSeedling": {
+    "message": "pousse croissance plante",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiEarth": {
+    "message": "terre monde globe",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiSun": {
+    "message": "soleil ensoleillé",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiHome": {
+    "message": "maison domicile",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiComputer": {
+    "message": "ordinateur portable travail",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiClock": {
+    "message": "réveil horloge heure",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "emojiAnnouncement": {
+    "message": "annonce mégaphone",
+    "description": "Emoji tooltip and searchable keywords. Keep useful synonyms."
+  },
+  "errorFontName": {
+    "message": "Saisissez un nom de police, par exemple Noto Sans."
+  },
+  "errorNumberRange": {
+    "message": "$LABEL$ doit être un nombre compris entre $MIN$ et $MAX$.",
+    "placeholders": {
+      "label": {
+        "content": "$1"
+      },
+      "min": {
+        "content": "$2"
+      },
+      "max": {
+        "content": "$3"
+      }
+    }
+  },
+  "fontSizePoints": {
+    "message": "La taille de police (pt)"
+  },
+  "paragraphSpacingPoints": {
+    "message": "L’espacement des paragraphes (pt)"
+  },
+  "lineSpacingValidation": {
+    "message": "L’interligne"
+  },
+  "errorColor": {
+    "message": "Utilisez une couleur hexadécimale à six chiffres, par exemple #187866."
+  },
+  "errorUrlSpaces": {
+    "message": "Saisissez une URL valide sans espaces."
+  },
+  "errorUrlFull": {
+    "message": "Saisissez une URL complète commençant par https://, http://, mailto: ou tel:."
+  },
+  "errorUrlScheme": {
+    "message": "Les liens doivent utiliser https://, http://, mailto: ou tel:."
+  },
+  "errorParagraphDirection": {
+    "message": "Choisissez d’augmenter ou de réduire l’espacement entre les paragraphes."
+  },
+  "errorLinkText": {
+    "message": "Le texte du lien ne doit pas dépasser 2 000 caractères."
+  },
+  "errorUnsupportedFormat": {
+    "message": "Cette option de mise en forme n’est pas prise en charge."
+  },
+  "errorEditorReconnect": {
+    "message": "L’éditeur de message n’est pas prêt. Essayez de vous reconnecter."
+  },
+  "errorEditorUnavailable": {
+    "message": "L’éditeur de message n’est plus disponible."
+  },
+  "errorDropdown": {
+    "message": "Menu de mise en forme inconnu."
+  },
+  "errorNoCompose": {
+    "message": "Cette barre d’outils n’est associée à aucune fenêtre de rédaction."
+  },
+  "errorComposeClosed": {
+    "message": "Cette fenêtre de rédaction n’est plus disponible."
+  },
+  "errorHtmlRequired": {
+    "message": "La mise en forme nécessite un message HTML. Maintenez Maj enfoncée en cliquant sur Écrire pour changer le format de rédaction."
+  },
+  "errorSelection": {
+    "message": "La sélection dans l’éditeur n’est pas disponible."
+  },
+  "errorRequest": {
+    "message": "Requête Rich Text inconnue."
+  },
+  "errorToolbarReconnect": {
+    "message": "L’éditeur de message n’est pas prêt. Essayez de reconnecter la barre d’outils."
+  },
+  "errorOtherCompose": {
+    "message": "Cette barre d’outils appartient à une autre fenêtre de rédaction."
+  },
+  "errorTypographyAdapter": {
+    "message": "Cette commande de mise en forme nécessite l’adaptateur typographique natif."
+  },
+  "errorCursor": {
+    "message": "Cette action n’est pas disponible à la position actuelle du curseur. Cliquez dans le message et réessayez."
+  },
+  "errorSelectText": {
+    "message": "Sélectionnez du texte dans le message avant de modifier sa taille."
+  },
+  "errorTypographyValue": {
+    "message": "Valeur typographique non prise en charge."
+  },
+  "errorEditorNotReady": {
+    "message": "L’éditeur de message n’est pas prêt pour la mise en forme."
+  },
+  "errorSelectParagraph": {
+    "message": "Cliquez dans un paragraphe avant de modifier son espacement."
+  },
+  "errorToolbarUnavailable": {
+    "message": "Cette barre de mise en forme n’est plus disponible."
+  },
+  "errorTypographyHtml": {
+    "message": "La typographie nécessite un message HTML."
+  }
+}

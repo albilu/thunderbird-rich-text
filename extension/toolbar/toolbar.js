@@ -1,6 +1,6 @@
 (() => {
   "use strict";
-  const { CHANNEL, SIZES, BLOCKS, normalizeCommand,
+  const { message, CHANNEL, SIZES, BLOCKS, normalizeCommand,
     normalizeColor, isPlainTextCommand } = RichText;
   const $ = selector => document.querySelector(selector);
   const $$ = selector => [...document.querySelectorAll(selector)];
@@ -103,18 +103,18 @@
       input.value = value;
     }
     const font = String(context.state.values.fontName || "").replace(/^["']|["']$/g, "");
-    $("#font").textContent = font || "Font family";
-    $("#font-toggle").setAttribute("aria-label", font ? `Font family: ${font}` : "Font family");
+    $("#font").textContent = font || message("fontFamily");
+    $("#font-toggle").setAttribute("aria-label", font ? message("fontFamilyValue", font) : message("fontFamily"));
     const block = String(context.state.values.formatBlock || "").replace(/[<>]/g, "").toLowerCase();
-    const style = BLOCKS.find(([value]) => value === block)?.[1] || "Style";
+    const style = message(BLOCKS.find(([value]) => value === block)?.[1] || "style");
     $("#block").textContent = style;
-    $("#style-toggle").setAttribute("aria-label", `Paragraph style: ${style}`);
+    $("#style-toggle").setAttribute("aria-label", message("paragraphStyleValue", style));
     enableControls();
     resize();
   }
   async function request(action, extra = {}) {
     const result = await browser.runtime.sendMessage({ channel: CHANNEL, action, tabId, ...extra });
-    if (!result?.ok) throw new Error(result?.error || "The message editor is not ready. Try reconnecting.");
+    if (!result?.ok) throw new Error(result?.error || message("errorEditorReconnect"));
     return result;
   }
   async function focusEditor() {
@@ -128,7 +128,7 @@
       enableControls();
       setError();
       render(await request("command", normalized), true);
-      $("#status").textContent = "Applied to your message.";
+      $("#status").textContent = message("applied");
       closeDropdown();
       await focusEditor();
       return true;
@@ -181,7 +181,7 @@
   browser.storage.local.get("customColors").then(preferences).catch(() => {});
   async function connect() {
     setError(); $("#retry").hidden = true;
-    try { render(await request("connect"), true); $("#status").textContent = "Rich Text toolbar ready."; }
+    try { render(await request("connect"), true); $("#status").textContent = message("toolbarReady"); }
     catch (error) { setError(error.message); $("#retry").hidden = false; }
   }
   $("#retry").addEventListener("click", connect);

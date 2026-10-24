@@ -7,6 +7,9 @@ runner, then packages the add-on. Unit tests exercise URL/command/color validati
 HTML escaping, emoji sequences, plain-text restrictions, toolbar-origin checks,
 tab targeting, existing-window injection, numeric typography bounds, native-operation
 routing, and deterministic archive contents.
+Localization tests verify complete English/French catalogs, named placeholders,
+message references, translated validation, text-only rendering, French emoji
+search (including accents and ligatures), and packaged locale resources.
 
 GitHub Actions runs these build checks on `master`, pull requests, manual runs,
 and version tags. Tag releases additionally verify the tag/manifest match and
@@ -49,6 +52,16 @@ must preserve differing margins across a selection, stop at zero, and undo toget
 Logs, screenshots, and a machine-readable success result go to `test-results/`.
 The test terminates its Thunderbird, window manager, and Xvfb processes and removes
 its temporary profile, including on test failure.
+
+Run `RICH_TEXT_TEST_LOCALE=fr npm run test:thunderbird` for French. The suite also
+accepts `fr-CA` to check regional fallback and `de` to check English fallback;
+the default is `en-US`. Non-default runs store their artifacts in
+`test-results/<locale>/`. The disposable test process exposes the requested
+locale to Thunderbird’s real WebExtension locale resolver before installing
+the XPI; it does not mock `browser.i18n` or download language packs. Thunderbird’s
+own interface may therefore remain English. Checks cover localized manifest
+metadata, toolbar labels, all seven dropdowns, settings, native/compose-script
+errors, French decimal labels, accent-insensitive emoji search, and popup overflow.
 
 Verified during implementation on **Thunderbird 153.4.0 ESR, Linux**, with Node.js
 24.21.0 and Python 3.14.8. Thunderbird 128 is the declared API minimum, not a claim

@@ -1,16 +1,16 @@
 (() => {
   "use strict";
-  const { CHANNEL, FONTS, BLOCKS, COLORS, HIGHLIGHTS, EMOJI, normalizeCommand, normalizeColor } = RichText;
+  const { message, emojiMatches, normalizeSearch, CHANNEL, FONTS, BLOCKS, COLORS, HIGHLIGHTS, EMOJI, normalizeCommand, normalizeColor } = RichText;
   const $ = selector => document.querySelector(selector);
   const $$ = selector => [...document.querySelectorAll(selector)];
   const params = new URL(location.href).searchParams;
   const tabId = Number(params.get("tabId"));
   const kind = params.get("kind");
   const panels = {
-    font: ["#font-dropdown", "Font family"], style: ["#style-menu", "Paragraph style"],
-    "line-spacing": ["#line-spacing-menu", "Line spacing"], "text-color": ["#color-menu", "Text color"],
-    "background-color": ["#color-menu", "Highlight / text background"], link: ["#link-menu", "Insert or edit a link"],
-    emoji: ["#emoji-menu", "Insert emoji"]
+    font: ["#font-dropdown", "fontFamily"], style: ["#style-menu", "paragraphStyle"],
+    "line-spacing": ["#line-spacing-menu", "lineSpacing"], "text-color": ["#color-menu", "textColor"],
+    "background-color": ["#color-menu", "highlightTitle"], link: ["#link-menu", "insertLink"],
+    emoji: ["#emoji-menu", "insertEmoji"]
   };
   const colorTarget = kind === "text-color" ? "foreColor" : "hiliteColor";
   const customColors = { foreColor: "#1f2937", hiliteColor: "#fef08a" };
@@ -31,7 +31,7 @@
   }
   async function request(action, extra = {}) {
     const response = await browser.runtime.sendMessage({ channel: CHANNEL, action, tabId, ...extra });
-    if (!response?.ok) throw new Error(response?.error || "The message editor is no longer available.");
+    if (!response?.ok) throw new Error(response?.error || message("errorEditorUnavailable"));
     return response;
   }
   async function command(name, value) {
@@ -75,7 +75,7 @@
     } else $("#font-search").removeAttribute("aria-activedescendant");
   }
   function drawFonts(search = "") {
-    matches = fonts.filter(font => font.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()));
+    matches = fonts.filter(font => normalizeSearch(font).includes(normalizeSearch(search)));
     $("#font-list").replaceChildren(...matches.map((font, i) => {
       const option = document.createElement("div");
       option.id = `font-option-${i}`;
@@ -88,7 +88,7 @@
       option.addEventListener("click", () => command("fontName", font));
       return option;
     }));
-    $("#font-count").textContent = `${matches.length} fonts`;
+    $("#font-count").textContent = message(matches.length === 1 ? "fontCountOne" : "fontCountOther", String(matches.length));
     $("#no-fonts").hidden = matches.length > 0;
     activateFont(search ? 0 : Math.max(0, matches.findIndex(font => font.toLowerCase() === currentFont().toLowerCase())));
   }
@@ -128,7 +128,7 @@
       button.setAttribute("aria-pressed", String(value === current));
       const preview = document.createElement("span");
       preview.className = `style-preview style-${value}`;
-      preview.textContent = label;
+      preview.textContent = message(label);
       const check = document.createElement("span");
       check.className = "style-check";
       check.setAttribute("aria-hidden", "true");
@@ -143,12 +143,12 @@
     for (const key of Object.keys(customColors)) {
       try { customColors[key] = normalizeColor(saved.customColors?.[key]); } catch { /* Keep the default. */ }
     }
-    $("#color-title").textContent = panels[kind][1];
+    $("#color-title").textContent = message(panels[kind][1]);
     $("#palette").replaceChildren(...(colorTarget === "foreColor" ? COLORS : HIGHLIGHTS).map(([value, label]) => {
       const button = document.createElement("button");
       button.className = "swatch";
       button.style.setProperty("--swatch", value);
-      button.title = `${label} (${value})`;
+      button.title = message("colorValue", [message(label), value]);
       button.setAttribute("aria-label", button.title);
       button.addEventListener("click", () => command(colorTarget, value));
       return button;
@@ -167,14 +167,14 @@
   });
   $("[data-command=unlink]").addEventListener("click", () => command("unlink"));
   function renderEmoji() {
-    const search = $("#emoji-search").value.trim().toLowerCase();
-    const matches = EMOJI.filter(([value, label]) => `${value} ${label}`.includes(search));
+    const search = $("#emoji-search").value;
+    const matches = EMOJI.filter(emoji => emojiMatches(emoji, search));
     $("#emoji-grid").replaceChildren(...matches.map(([value, label]) => {
       const button = document.createElement("button");
       button.className = "emoji";
       button.textContent = value;
-      button.title = label;
-      button.setAttribute("aria-label", `Insert ${label}`);
+      button.title = message(label);
+      button.setAttribute("aria-label", message("insertEmojiLabel", message(label)));
       button.addEventListener("click", () => command("insertText", value));
       return button;
     }));
@@ -197,15 +197,15 @@
 
   async function connect() {
     try {
-      if (!Object.hasOwn(panels, kind)) throw new Error("Unknown formatting dropdown.");
+      if (!Object.hasOwn(panels, kind)) throw new Error(message("errorDropdown"));
       document.body.dataset.kind = kind;
       $(panels[kind][0]).hidden = false;
-      document.title = panels[kind][1];
+      document.title = message(panels[kind][1]);
       context = await request("state");
       let focus;
       if (kind === "font") {
         try { fonts = [...new Set([...FONTS, ...await browser.composeToolbar.getFonts()])]; }
-        catch { $("#font-search").placeholder = "Enter a font family…"; }
+        catch { $("#font-search").placeholder = message("enterFont"); }
         $("#font-search").value = currentFont();
         drawFonts();
         focus = $("#font-search");

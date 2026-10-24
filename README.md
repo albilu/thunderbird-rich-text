@@ -36,6 +36,9 @@ sending.
   emoji with locally stored recents; emoji also work in plain-text compose.
 - **Native look and feel** — follows Thunderbird's light/dark theme, labeled
   controls, keyboard navigation, live formatting state at the caret.
+- **English and French** — automatically follows Thunderbird’s interface language,
+  with translated controls, settings, messages, and searchable emoji keywords.
+  Other languages fall back to English.
 - **Toolbar settings** — hide Thunderbird's original toolbar (default) or show
   both; choices persist across restarts and upgrades.
 
@@ -81,6 +84,7 @@ npm run build               # check + test + package XPI into dist/
 npm run check               # syntax, manifest, resource, permission checks
 npm test                    # unit tests (command safety, routing, reproducible XPI)
 npm run test:thunderbird    # real Thunderbird suite (Linux; needs Xvfb + xfwm4)
+RICH_TEXT_TEST_LOCALE=fr npm run test:thunderbird # French interface and formatting
 python3 scripts/package.py  # package only, no checks
 ```
 
@@ -88,6 +92,11 @@ The native suite runs a disposable offline profile, never touches your real
 profile or sends mail, and is not part of CI. Releases are tagged `v<version>`
 matching `extension/manifest.json`; GitHub Actions builds and publishes the
 XPI from `.github/workflows/release.yml`.
+
+Translations live in `extension/_locales/<language>/messages.json`, with `en` as
+the fallback. Keep the same message keys and named placeholders in each catalog.
+The build checks translation coverage and placeholders; see the
+[verification checklist](docs/testing.md) for native language tests.
 
 More details: [design notes](docs/design.md),
 [verification checklist](docs/testing.md),
