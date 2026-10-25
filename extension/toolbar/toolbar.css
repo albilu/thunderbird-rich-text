@@ -3,7 +3,7 @@
 body { position: relative; margin: 0; padding: 6px 8px; border-bottom: 1px solid var(--line); max-height: 360px; overflow-y: auto; }
 [hidden] { display: none !important; }
 #strip { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; }
-.brand { display: inline-flex; align-items: center; gap: 6px; padding-right: 5px; font-size: 11px; font-weight: 650; white-space: nowrap; }
+.brand { display: inline-flex; align-items: center; padding-right: 5px; }
 .group { display: flex; align-items: center; gap: 2px; }
 .group { padding-inline-end: 6px; border-inline-end: 1px solid var(--line); }
 button, select, input { font: inherit; color: inherit; }
